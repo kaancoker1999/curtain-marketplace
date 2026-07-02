@@ -15,6 +15,14 @@ export const DEMO_PROVIDERS: Provider[] = [
     name: 'Carra Woods',
     slug: 'carra-woods',
     description: 'Hücreli (petek) perde uzmanı üretici — ölçüye özel üretim, 7-14 iş gününde sevkiyat.',
+    about:
+      'Carra Woods, hücreli (petek) ve Roman perdede uzmanlaşmış bir üreticidir. Tüm üretim ' +
+      'ölçüye özeldir: kesim, konfeksiyon ve kalite kontrol tek çatı altında yapılır, siparişler ' +
+      '7-14 iş gününde sevkiyata hazırlanır. Petek yapılı kumaşlarla ısı ve ses yalıtımına, Roman ' +
+      'serisinde ise dört farklı pile stili ve geniş kumaş koleksiyonlarına odaklanır. İpsiz, ' +
+      'zincirli ve motorlu mekanizma seçeneklerinin tamamı kendi atölyesinde monte edilir; her ' +
+      'perde tam uyum garantisiyle gönderilir.',
+    salesCount: 1250,
     roles: ['MANUFACTURER'],
     city: 'Istanbul',
     country: 'Türkiye',
@@ -35,6 +43,11 @@ export const DEMO_PROVIDERS: Provider[] = [
     name: 'Atlas Curtain Manufacturing',
     slug: 'atlas-curtain-manufacturing',
     description: 'Tam kapsamlı perde üreticisi: kesim, dikim, pile ve finisaj — yüksek kapasiteli üretim.',
+    about:
+      'Atlas Curtain Manufacturing, otel ve konut projeleri için yüksek kapasiteli perde üretimi ' +
+      'yapar. Kesimden finisaja tüm hat kendi tesisindedir; haftalık 1.200 panel kapasitesiyle ' +
+      'büyük projelerde öngörülebilir termin sunar.',
+    salesCount: 4800,
     roles: ['MANUFACTURER', 'SEWING_WORKSHOP'],
     city: 'Bursa',
     country: 'Türkiye',
@@ -59,6 +72,11 @@ export const DEMO_PROVIDERS: Provider[] = [
     name: 'Denizli Textile Works',
     slug: 'denizli-textile-works',
     description: 'Üçüncü kuşak tekstil üreticisi; tül, vual ve karartma serilerinde uzman.',
+    about:
+      'Denizli Textile Works, üç kuşaktır tül ve vual dokumacılığı yapan bir aile işletmesidir. ' +
+      'Kendi dokuma tezgâhlarında ürettiği kumaşları konfeksiyonuyla birleştirir; özellikle ' +
+      'nakışlı tül ve karartma serilerinde geniş bir arşive sahiptir.',
+    salesCount: 2900,
     roles: ['MANUFACTURER', 'FABRIC_SUPPLIER'],
     city: 'Denizli',
     country: 'Türkiye',
@@ -81,6 +99,11 @@ export const DEMO_PROVIDERS: Provider[] = [
     name: 'Marmara Sewing Atelier',
     slug: 'marmara-sewing-atelier',
     description: 'Ölçüye özel ve premium finisaj işleri için butik dikim atölyesi.',
+    about:
+      'Marmara Sewing Atelier, ölçüye özel ve premium finisaj isteyen işler için çalışan butik ' +
+      'bir dikim atölyesidir. Küçük partilerde yüksek işçilik kalitesine odaklanır; özel nakış ' +
+      've el işçiliği gerektiren projelerde tercih edilir.',
+    salesCount: 640,
     roles: ['SEWING_WORKSHOP'],
     city: 'Istanbul',
     country: 'Türkiye',
@@ -101,6 +124,11 @@ export const DEMO_PROVIDERS: Provider[] = [
     name: 'Anadolu Confection Co.',
     slug: 'anadolu-confection',
     description: 'Yüksek hacimli ekonomik konfeksiyon; her hafta ek kapasite açığı bulunur.',
+    about:
+      'Anadolu Confection, toptan ve ekonomik segmentte yüksek hacimli perde konfeksiyonu yapar. ' +
+      'Haftalık 1.500 panel kapasitesiyle acil ve büyük partileri hızla karşılar; zebra ve stor ' +
+      'serilerinde hazır ürün stoğu tutar.',
+    salesCount: 5600,
     roles: ['SEWING_WORKSHOP', 'MANUFACTURER'],
     city: 'Gaziantep',
     country: 'Türkiye',
@@ -123,6 +151,10 @@ export const DEMO_PROVIDERS: Provider[] = [
     name: 'Ege Installation Team',
     slug: 'ege-installation-team',
     description: 'Ege bölgesi genelinde sertifikalı perde ve stor montajı.',
+    about:
+      'Ege Installation Team, İzmir merkezli sertifikalı bir montaj ekibidir. 150 km hizmet ' +
+      'yarıçapında perde, stor ve ray montajı ile yerinde ölçüm hizmeti verir.',
+    salesCount: 1100,
     roles: ['INSTALLER'],
     city: 'Izmir',
     country: 'Türkiye',
@@ -141,6 +173,10 @@ export const DEMO_PROVIDERS: Provider[] = [
     name: 'Bosphorus Mounting Services',
     slug: 'bosphorus-mounting',
     description: 'Aynı hafta montaj; motorlu sistemlerde uzman ekip.',
+    about:
+      'Bosphorus Mounting Services, İstanbul içinde aynı hafta montaj sunan bir ekiptir. ' +
+      'Motorlu ve akıllı ev entegrasyonlu sistem kurulumlarında uzmanlaşmıştır.',
+    salesCount: 900,
     roles: ['INSTALLER'],
     city: 'Istanbul',
     country: 'Türkiye',
@@ -159,6 +195,10 @@ export const DEMO_PROVIDERS: Provider[] = [
     name: 'Kumaşçı Fabric House',
     slug: 'kumasci-fabric-house',
     description: 'Toptan kumaş tedarikçisi — perdelik, tül ve karartma kumaşta 400+ çeşit.',
+    about:
+      'Kumaşçı Fabric House, perdelik kumaşta 400\'ü aşkın SKU tutan toptan bir tedarikçidir. ' +
+      'Keten, kadife, vual ve karartma gruplarında sürekli stok; metraj bazlı hızlı sevkiyat sağlar.',
+    salesCount: 12500,
     roles: ['FABRIC_SUPPLIER'],
     city: 'Istanbul',
     country: 'Türkiye',
@@ -174,6 +214,10 @@ export const DEMO_PROVIDERS: Provider[] = [
     name: 'Studio Perde Design',
     slug: 'studio-perde-design',
     description: 'İç mekân tekstil tasarım stüdyosu: konsept panoları, 3B önizleme, özel desen.',
+    about:
+      'Studio Perde Design, iç mekân tekstili odaklı bir tasarım stüdyosudur. Konsept panoları, ' +
+      '3B önizleme ve özel desen çalışmalarıyla proje bazlı hizmet verir.',
+    salesCount: 180,
     roles: ['CREATIVE_STUDIO'],
     city: 'Ankara',
     country: 'Türkiye',
@@ -207,11 +251,13 @@ export const DEMO_FABRICS: FabricSummary[] = [
 ]
 
 export const DEMO_ORDERS: OrderSummary[] = [
+  { id: 'ord-6', orderNumber: 'CO-2026-0144', buyerName: 'Perde Palace (Perakende)', sellerName: 'Carra Woods', status: 'IN_PRODUCTION', total: 78000, currency: 'TRY', placedAt: '2026-06-30', dueDate: '2026-07-14', itemCount: 22 },
   { id: 'ord-1', orderNumber: 'CO-2026-0142', buyerName: 'Perde Palace (Perakende)', sellerName: 'Atlas Curtain Manufacturing', status: 'IN_PRODUCTION', total: 171000, currency: 'TRY', placedAt: '2026-06-24', dueDate: '2026-07-08', itemCount: 48 },
   { id: 'ord-2', orderNumber: 'CO-2026-0141', buyerName: 'HomeStyle Interiors', sellerName: 'Marmara Sewing Atelier', status: 'SHIPPED', total: 45500, currency: 'TRY', placedAt: '2026-06-21', dueDate: '2026-07-01', itemCount: 12 },
   { id: 'ord-3', orderNumber: 'CO-2026-0139', buyerName: 'Perde Palace (Perakende)', sellerName: 'Ege Installation Team', status: 'COMPLETED', total: 15000, currency: 'TRY', placedAt: '2026-06-15', itemCount: 1 },
   { id: 'ord-4', orderNumber: 'CO-2026-0137', buyerName: 'Grand Hotel Ankara', sellerName: 'Denizli Textile Works', status: 'CONFIRMED', total: 386000, currency: 'TRY', placedAt: '2026-06-28', dueDate: '2026-07-20', itemCount: 120 },
   { id: 'ord-5', orderNumber: 'CO-2026-0135', buyerName: 'HomeStyle Interiors', sellerName: 'Kumaşçı Fabric House', status: 'DELIVERED', total: 85000, currency: 'TRY', placedAt: '2026-06-10', itemCount: 6 },
+  { id: 'ord-7', orderNumber: 'CO-2026-0128', buyerName: 'Grand Hotel Ankara', sellerName: 'Carra Woods', status: 'COMPLETED', total: 124000, currency: 'TRY', placedAt: '2026-05-28', itemCount: 40 },
 ]
 
 /** Well-known city coordinates for demo-mode logistics scoring. */

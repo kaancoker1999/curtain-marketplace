@@ -76,6 +76,10 @@ export interface Provider {
   name: string
   slug: string
   description?: string
+  /** Profil sayfası tanıtım metni (şirket hakkında). */
+  about?: string
+  /** Platform üzerindeki toplam satış adedi (kademeli gösterilir: 100+, 500+…). */
+  salesCount?: number
   roles: OrgRole[]
   city: string
   country: string
