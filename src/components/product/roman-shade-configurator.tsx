@@ -89,6 +89,21 @@ const SHEER_COLLECTIONS: FabricCollection[] = [
     ],
   },
   {
+    id: 'lucetta',
+    label: 'Koleksiyon · Lucetta',
+    desc: 'İnce, ışıltılı tüller',
+    fabrics: [
+      { id: 'inci-isigi', label: 'İnci Işığı', hex: '#F2F0EA' },
+      { id: 'sut-beyazi', label: 'Süt Beyazı', hex: '#EFEBE2' },
+      { id: 'safak-pembesi', label: 'Şafak Pembesi', hex: '#E8D8D4' },
+      { id: 'gumus-tel', label: 'Gümüş Tel', hex: '#D4D6D9' },
+      { id: 'duman-halkasi', label: 'Duman Halkası', hex: '#BEC1C4' },
+      { id: 'bal-kopugu', label: 'Bal Köpüğü', hex: '#E6DCC0' },
+      { id: 'ekru', label: 'Ekru', hex: '#E2DAC8' },
+      { id: 'golge-beyazi', label: 'Gölge Beyazı', hex: '#D9DAD4' },
+    ],
+  },
+  {
     id: 'piero',
     label: 'Koleksiyon · Piero',
     desc: 'Gri ve mineral tonlar',
@@ -213,6 +228,21 @@ const SEMI_SHEER_COLLECTIONS: FabricCollection[] = [
       { id: 'altin-toprak', label: 'Altın Toprak', hex: '#B9A468' },
     ],
   },
+  {
+    id: 'atmosphere',
+    label: 'Koleksiyon · Atmosphere',
+    desc: 'Bulutsu, atmosferik tonlar',
+    fabrics: [
+      { id: 'bulut-katmani', label: 'Bulut Katmanı', hex: '#DDE1E4' },
+      { id: 'gokyuzu-grisi', label: 'Gökyüzü Grisi', hex: '#C2CAD2' },
+      { id: 'yagmur-pusu', label: 'Yağmur Pusu', hex: '#A9B4BC' },
+      { id: 'ozon', label: 'Ozon', hex: '#93A4B4' },
+      { id: 'alacakaranlik', label: 'Alacakaranlık', hex: '#7B8494' },
+      { id: 'kuzey-ruzgari', label: 'Kuzey Rüzgârı', hex: '#B7C4C6' },
+      { id: 'sabah-bugusu', label: 'Sabah Buğusu', hex: '#D2D8D2' },
+      { id: 'ay-halesi', label: 'Ay Halesi', hex: '#E4E4DC' },
+    ],
+  },
 ]
 
 const LIGHT_FILTERING_COLLECTIONS: FabricCollection[] = [
@@ -258,50 +288,9 @@ const LIGHT_FILTERING_COLLECTIONS: FabricCollection[] = [
 
 const ROOM_DARKENING_COLLECTIONS: FabricCollection[] = [
   {
-    id: 'outlander-koyu',
-    label: 'Koleksiyon · Outlander',
-    desc: 'Loşlaştıran dokumada zengin renkler',
-    fabrics: [
-      { id: 'erik-kadifesi', label: 'Erik Kadifesi', hex: '#C9A8C4' },
-      { id: 'gul-agaci', label: 'Gül Ağacı', hex: '#E790B8' },
-      { id: 'dut-alacakaranligi', label: 'Dut Alacakaranlığı', hex: '#9E8FA6' },
-      { id: 'firtina-civit', label: 'Fırtına Çivit', hex: '#9BA3B8' },
-      { id: 'okyanus-camgobegi', label: 'Okyanus Camgöbeği', hex: '#9CC7D3' },
-      { id: 'mineral-aqua', label: 'Mineral Aqua', hex: '#ACE4DD' },
-      { id: 'kayrak-mavisi', label: 'Kayrak Mavisi', hex: '#A9C4DC' },
-      { id: 'serin-ufuk', label: 'Serin Ufuk', hex: '#AEB6C4' },
-      { id: 'zeytin-kulu', label: 'Zeytin Külü', hex: '#DDDFD2' },
-      { id: 'sehir-dumani', label: 'Şehir Dumanı', hex: '#B4B4B0' },
-      { id: 'sis-celigi', label: 'Sis Çeliği', hex: '#BDD2E4' },
-      { id: 'cayir-yesili', label: 'Çayır Yeşili', hex: '#D8E4A9' },
-      { id: 'adacayi-tozu', label: 'Adaçayı Tozu', hex: '#EDF2DC' },
-      { id: 'kul-grisi', label: 'Kül Grisi', hex: '#D6D6D2' },
-      { id: 'toz-grisi', label: 'Toz Grisi', hex: '#CFCBC4' },
-      { id: 'truf', label: 'Trüf', hex: '#A78C84' },
-      { id: 'grafit-mavisi', label: 'Grafit Mavisi', hex: '#8A93A9' },
-      { id: 'gece-golgesi', label: 'Gece Yarısı Gölgesi', hex: '#6E7076' },
-    ],
-  },
-  {
-    id: 'nomad-rd',
-    label: 'Koleksiyon · Nomad',
-    desc: 'Etnik desenli dokumalar',
-    fabrics: [
-      { id: 'asi-boyasi-rd', label: 'Aşı Boyası', hex: '#C8A96A' },
-      { id: 'kehribar-ayazi-rd', label: 'Kehribar Ayazı', hex: '#C6B490' },
-      { id: 'savan-altini-rd', label: 'Savan Altını', hex: '#F2EFE6' },
-      { id: 'kanvas-kemik-rd', label: 'Kanvas Kemik', hex: '#DFD9C6' },
-      { id: 'tas-rd', label: 'Taş', hex: '#7A8894' },
-      { id: 'kumtasi-akintisi-rd', label: 'Kumtaşı Akıntısı', hex: '#B39B7A' },
-    ],
-  },
-]
-
-const BLACKOUT_COLLECTIONS: FabricCollection[] = [
-  {
     id: 'hesperia',
     label: 'Koleksiyon · Hesperia',
-    desc: 'Tam karartma dokumalar',
+    desc: 'Loşlaştıran dokumalar',
     fabrics: [
       { id: 'bulut-hatti', label: 'Bulut Hattı', hex: '#6E7379' },
       { id: 'kayrak-ocagi', label: 'Kayrak Ocağı', hex: '#565B61' },
@@ -314,6 +303,27 @@ const BLACKOUT_COLLECTIONS: FabricCollection[] = [
       { id: 'yulaf-tonu', label: 'Yulaf Tonu', hex: '#E3E1DA' },
       { id: 'karbon-dokuma', label: 'Karbon Dokuma', hex: '#4A4C50' },
       { id: 'mavi-alacakaranlik', label: 'Mavi Alacakaranlık', hex: '#5C6B84' },
+    ],
+  },
+]
+
+const BLACKOUT_COLLECTIONS: FabricCollection[] = [
+  {
+    id: 'obscura',
+    label: 'Koleksiyon · Obscura',
+    desc: 'Tam karartma dokumalar',
+    fabrics: [
+      { id: 'gece-murekkebi', label: 'Gece Mürekkebi', hex: '#2E3138' },
+      { id: 'kuzgun', label: 'Kuzgun', hex: '#3A3A3C' },
+      { id: 'antrasit', label: 'Antrasit', hex: '#4A4D52' },
+      { id: 'derin-deniz', label: 'Derin Deniz', hex: '#39485C' },
+      { id: 'kestane-karasi', label: 'Kestane Karası', hex: '#463832' },
+      { id: 'bazalt', label: 'Bazalt', hex: '#5B5E63' },
+      { id: 'kursun', label: 'Kurşun', hex: '#6D7178' },
+      { id: 'zift', label: 'Zift', hex: '#26262A' },
+      { id: 'gece-mavisi', label: 'Gece Mavisi', hex: '#2F3A52' },
+      { id: 'koyu-mese', label: 'Koyu Meşe', hex: '#54443A' },
+      { id: 'volkanik-kul', label: 'Volkanik Kül', hex: '#7C7E82' },
     ],
   },
 ]
