@@ -1,10 +1,10 @@
 'use client'
 
 // Ölçüye özel Roman perde konfigüratörü (Carra Woods ürünü).
-// Akış: oda → montaj → ölçü → pile stili → ışık kontrolü → kumaş & renk →
-// mekanizma → açılım → astar → özet. Fiyat = taban + m² ölçü farkı +
-// pile stili + kumaş + mekanizma + TDBU + astar. Işık kontrolü seçimi
-// ücretsizdir; ışık geçirgenliği asıl olarak kumaş ve astarla belirlenir.
+// Kural motoru: kumaş koleksiyonları ve fiyat tablosu (taban + m² oranı)
+// seçilen ışık kontrolüne bağlıdır — her geçirgenlik seviyesinin kendi
+// koleksiyonları vardır (örn. Işık Süzen → Outlander & Nomad,
+// Karartma → Hesperia). Işık kontrolü değişince kumaş seçimi sıfırlanır.
 
 import { useMemo, useState } from 'react'
 import { BadgeCheck, Check, Info, ShieldCheck, Truck } from 'lucide-react'
@@ -35,19 +35,25 @@ const MOUNTS = [
 ] as const
 
 const FOLD_STYLES = [
-  { id: 'seamless-flat', label: 'Düz (Dikişsiz)', desc: 'Kesintisiz, dümdüz bir ön yüz.', price: 0 },
-  { id: 'classic-flat', label: 'Klasik Düz', desc: 'İnce yatay dikiş hatları.', price: 0 },
+  { id: 'back-batten', label: 'Arkadan Çubuklu', desc: 'Çubuklar arkada gizlidir; önden dümdüz, kesintisiz bir yüz.', price: 0 },
+  { id: 'front-stitched', label: 'Önden Dikişli', desc: 'Kat hatları önden ince dikişlerle belirginleştirilir.', price: 0 },
   { id: 'relaxed', label: 'Gevşek Etek', desc: 'Alt kenarda yumuşak bir kavis.', price: 0 },
   { id: 'hobbled', label: 'Kademeli (Hobbled)', desc: 'Üst üste binen dolgun kat görünümü.', price: 1800 },
 ] as const
 
-const LIGHT_CONTROLS = [
+type LightControlId = 'sheer' | 'semi-sheer' | 'light-filtering' | 'room-darkening' | 'blackout'
+
+const LIGHT_CONTROLS: { id: LightControlId; label: string; desc: string }[] = [
   { id: 'sheer', label: 'Tül Geçirgen', desc: 'Maksimum ışık, zarif dokuma.' },
   { id: 'semi-sheer', label: 'Yarı Geçirgen', desc: 'Yumuşak ışık, hafif doku.' },
   { id: 'light-filtering', label: 'Işık Süzen', desc: 'Gündüz mahremiyeti, sıcak aydınlık.' },
   { id: 'room-darkening', label: 'Loşlaştıran', desc: 'Işığın büyük bölümünü keser.' },
   { id: 'blackout', label: 'Karartma', desc: 'Astarla birlikte tam karanlık sağlar.' },
-] as const
+]
+
+// ---------------------------------------------------------------------------
+// Kumaş koleksiyonları — ışık kontrolüne göre
+// ---------------------------------------------------------------------------
 
 interface FabricOption {
   id: string
@@ -62,11 +68,11 @@ interface FabricCollection {
   fabrics: FabricOption[]
 }
 
-const COLLECTIONS: FabricCollection[] = [
+const SHEER_COLLECTIONS: FabricCollection[] = [
   {
     id: 'soho',
     label: 'Koleksiyon · Soho',
-    desc: 'Dokulu ve çizgili dokumalar',
+    desc: 'Dokulu ve çizgili tül dokumalar',
     fabrics: [
       { id: 'buzul-tulu', label: 'Buzul Tülü', hex: '#DCE1E4' },
       { id: 'dere-tasi', label: 'Dere Taşı', hex: '#C7C3BB' },
@@ -120,6 +126,226 @@ const COLLECTIONS: FabricCollection[] = [
   },
 ]
 
+const SEMI_SHEER_COLLECTIONS: FabricCollection[] = [
+  {
+    id: 'marlow',
+    label: 'Koleksiyon · Marlow',
+    desc: 'Yumuşak, geniş renk gamı',
+    fabrics: [
+      { id: 'soluk-akinti', label: 'Soluk Akıntı', hex: '#DCE3E8' },
+      { id: 'pamuk-tozu', label: 'Pamuk Tozu', hex: '#E7E2D6' },
+      { id: 'keten-sisi-m', label: 'Keten Sisi', hex: '#DED7C4' },
+      { id: 'kil-fisiltisi', label: 'Kil Fısıltısı', hex: '#D9D2C6' },
+      { id: 'dogal-kabuk', label: 'Doğal Kabuk', hex: '#CFC5B0' },
+      { id: 'cakil-tonu', label: 'Çakıl Tonu', hex: '#C9C2B4' },
+      { id: 'kumtasi-tulu', label: 'Kumtaşı Tülü', hex: '#C2B49C' },
+      { id: 'alacakaranlik-yosunu', label: 'Alacakaranlık Yosunu', hex: '#A99F8C' },
+      { id: 'adacayi-bulutu', label: 'Adaçayı Bulutu', hex: '#B7C0B4' },
+      { id: 'kayrak-kumulu', label: 'Kayrak Kumulu', hex: '#9AA0A4' },
+      { id: 'gri-agac', label: 'Gri Ağaç', hex: '#8E9AAC' },
+      { id: 'sicak-cakmaktasi', label: 'Sıcak Çakmaktaşı', hex: '#97A08B' },
+      { id: 'kumul-dumani', label: 'Kumul Dumanı', hex: '#8F8C81' },
+      { id: 'zeytin-sisi-m', label: 'Zeytin Sisi', hex: '#6E7370' },
+      { id: 'arnavut-kaldirimi', label: 'Arnavut Kaldırımı', hex: '#7A6A66' },
+      { id: 'kutup-pusu', label: 'Kutup Pusu', hex: '#4A5F8A' },
+      { id: 'lavanta-kulu', label: 'Lavanta Külü', hex: '#8B7FA6' },
+      { id: 'gul-tozu', label: 'Gül Tozu', hex: '#D8A9B4' },
+    ],
+  },
+  {
+    id: 'lazuli',
+    label: 'Koleksiyon · Lazuli',
+    desc: 'İnce dokuma, sakin tonlar',
+    fabrics: [
+      { id: 'dokuma', label: 'Dokuma', hex: '#C5CDD4' },
+      { id: 'tutam', label: 'Tutam', hex: '#D6D3C4' },
+      { id: 'akinti', label: 'Akıntı', hex: '#C9C9BE' },
+      { id: 'tahil', label: 'Tahıl', hex: '#B4AF97' },
+      { id: 'golge', label: 'Gölge', hex: '#8E9BA6' },
+      { id: 'iplik', label: 'İplik', hex: '#9A9C9E' },
+      { id: 'parilti', label: 'Parıltı', hex: '#7C7E72' },
+      { id: 'vizon', label: 'Vizon', hex: '#A9A093' },
+    ],
+  },
+  {
+    id: 'carillo',
+    label: 'Koleksiyon · Carillo',
+    desc: 'Doğal keten görünümü',
+    fabrics: [
+      { id: 'kul-kumulu', label: 'Kül Kumulu', hex: '#6B6862' },
+      { id: 'tas-tulu', label: 'Taş Tülü', hex: '#9C9488' },
+      { id: 'dokuma-vizon', label: 'Dokuma Vizon', hex: '#ABA091' },
+      { id: 'fisilti-bej', label: 'Fısıltı Bej', hex: '#C4BBA9' },
+      { id: 'hus-keteni', label: 'Huş Keteni', hex: '#D3CDBD' },
+      { id: 'kirectasi-sisi', label: 'Kireçtaşı Sisi', hex: '#B9BCBB' },
+      { id: 'soluk-kamis', label: 'Soluk Kamış', hex: '#4E4C46' },
+      { id: 'grafit-kor', label: 'Grafit Kor', hex: '#6E6A66' },
+      { id: 'golge-fildisi', label: 'Gölge Fildişi', hex: '#46586E' },
+    ],
+  },
+  {
+    id: 'arrow',
+    label: 'Koleksiyon · Arrow',
+    desc: 'Grafik dokular',
+    fabrics: [
+      { id: 'sis-a', label: 'Sis', hex: '#B9BEC2' },
+      { id: 'kil-a', label: 'Kil', hex: '#ADA396' },
+      { id: 'grafit-a', label: 'Grafit', hex: '#9B9C9E' },
+      { id: 'sirt', label: 'Sırt', hex: '#C3C6C9' },
+    ],
+  },
+  {
+    id: 'periscope',
+    label: 'Koleksiyon · Periscope',
+    desc: 'Modern nötrler ve toprak tonları',
+    fabrics: [
+      { id: 'ayaz-keteni', label: 'Ayaz Keteni', hex: '#E3E3DE' },
+      { id: 'sabah-kulu', label: 'Sabah Külü', hex: '#D6D6D0' },
+      { id: 'safak-sisi', label: 'Şafak Sisi', hex: '#CDD1D2' },
+      { id: 'bulut-tulu', label: 'Bulut Tülü', hex: '#C4C8CB' },
+      { id: 'sessiz-kalay', label: 'Sessiz Kalay', hex: '#B8BCBE' },
+      { id: 'cakil-tozu-p', label: 'Çakıl Tozu', hex: '#A9ADB0' },
+      { id: 'kul-limani', label: 'Kül Limanı', hex: '#9A968C' },
+      { id: 'toz-vizon-p', label: 'Toz Vizon', hex: '#6F6C64' },
+      { id: 'bej-dinginlik', label: 'Bej Dinginlik', hex: '#8A8578' },
+      { id: 'gunbatimi-topragi', label: 'Günbatımı Toprağı', hex: '#C4674B' },
+      { id: 'bronz-pus', label: 'Bronz Pus', hex: '#7D7A72' },
+      { id: 'altin-toprak', label: 'Altın Toprak', hex: '#B9A468' },
+    ],
+  },
+]
+
+const LIGHT_FILTERING_COLLECTIONS: FabricCollection[] = [
+  {
+    id: 'outlander',
+    label: 'Koleksiyon · Outlander',
+    desc: 'Nötrlerden canlı tonlara geniş yelpaze',
+    fabrics: [
+      { id: 'fildisi-bulut', label: 'Fildişi Bulut', hex: '#EDEBE4' },
+      { id: 'yumusak-kum', label: 'Yumuşak Kum', hex: '#E3DCC9' },
+      { id: 'keten-sisi-o', label: 'Keten Sisi', hex: '#D3CDBB' },
+      { id: 'badem-kabugu', label: 'Badem Kabuğu', hex: '#CBD0C8' },
+      { id: 'istiridye-beyazi', label: 'İstiridye Beyazı', hex: '#B9C0AE' },
+      { id: 'aytasi', label: 'Aytaşı', hex: '#A9A5A9' },
+      { id: 'kul-erigi', label: 'Kül Eriği', hex: '#8D8880' },
+      { id: 'cakil-beji', label: 'Çakıl Beji', hex: '#B3A489' },
+      { id: 'gunesli-kum', label: 'Güneşli Kum', hex: '#CDB863' },
+      { id: 'kavrulmus-bal', label: 'Kavrulmuş Bal', hex: '#D3A954' },
+      { id: 'yanik-toprak', label: 'Yanık Toprak', hex: '#C07A3E' },
+      { id: 'tarcin-kili', label: 'Tarçın Kili', hex: '#C0592F' },
+      { id: 'terrakota-alevi', label: 'Terrakota Alevi', hex: '#C34E33' },
+      { id: 'kizil-cicek', label: 'Kızıl Çiçek', hex: '#C13438' },
+      { id: 'yakut-kirmizisi', label: 'Yakut Kırmızısı', hex: '#A81F2E' },
+      { id: 'bogurtlen-pembesi', label: 'Böğürtlen Pembesi', hex: '#D6AEC4' },
+      { id: 'leylak-sisi', label: 'Leylak Sisi', hex: '#B79BC0' },
+      { id: 'lavanta-tozu', label: 'Lavanta Tozu', hex: '#9C90C4' },
+    ],
+  },
+  {
+    id: 'nomad',
+    label: 'Koleksiyon · Nomad',
+    desc: 'Etnik desenli dokumalar',
+    fabrics: [
+      { id: 'asi-boyasi', label: 'Aşı Boyası', hex: '#C8A96A' },
+      { id: 'kehribar-ayazi', label: 'Kehribar Ayazı', hex: '#C6B490' },
+      { id: 'savan-altini', label: 'Savan Altını', hex: '#F2EFE6' },
+      { id: 'kanvas-kemik', label: 'Kanvas Kemik', hex: '#DFD9C6' },
+      { id: 'tas-n', label: 'Taş', hex: '#7A8894' },
+      { id: 'kumtasi-akintisi', label: 'Kumtaşı Akıntısı', hex: '#B39B7A' },
+    ],
+  },
+]
+
+const ROOM_DARKENING_COLLECTIONS: FabricCollection[] = [
+  {
+    id: 'outlander-koyu',
+    label: 'Koleksiyon · Outlander',
+    desc: 'Loşlaştıran dokumada zengin renkler',
+    fabrics: [
+      { id: 'erik-kadifesi', label: 'Erik Kadifesi', hex: '#C9A8C4' },
+      { id: 'gul-agaci', label: 'Gül Ağacı', hex: '#E790B8' },
+      { id: 'dut-alacakaranligi', label: 'Dut Alacakaranlığı', hex: '#9E8FA6' },
+      { id: 'firtina-civit', label: 'Fırtına Çivit', hex: '#9BA3B8' },
+      { id: 'okyanus-camgobegi', label: 'Okyanus Camgöbeği', hex: '#9CC7D3' },
+      { id: 'mineral-aqua', label: 'Mineral Aqua', hex: '#ACE4DD' },
+      { id: 'kayrak-mavisi', label: 'Kayrak Mavisi', hex: '#A9C4DC' },
+      { id: 'serin-ufuk', label: 'Serin Ufuk', hex: '#AEB6C4' },
+      { id: 'zeytin-kulu', label: 'Zeytin Külü', hex: '#DDDFD2' },
+      { id: 'sehir-dumani', label: 'Şehir Dumanı', hex: '#B4B4B0' },
+      { id: 'sis-celigi', label: 'Sis Çeliği', hex: '#BDD2E4' },
+      { id: 'cayir-yesili', label: 'Çayır Yeşili', hex: '#D8E4A9' },
+      { id: 'adacayi-tozu', label: 'Adaçayı Tozu', hex: '#EDF2DC' },
+      { id: 'kul-grisi', label: 'Kül Grisi', hex: '#D6D6D2' },
+      { id: 'toz-grisi', label: 'Toz Grisi', hex: '#CFCBC4' },
+      { id: 'truf', label: 'Trüf', hex: '#A78C84' },
+      { id: 'grafit-mavisi', label: 'Grafit Mavisi', hex: '#8A93A9' },
+      { id: 'gece-golgesi', label: 'Gece Yarısı Gölgesi', hex: '#6E7076' },
+    ],
+  },
+  {
+    id: 'nomad-rd',
+    label: 'Koleksiyon · Nomad',
+    desc: 'Etnik desenli dokumalar',
+    fabrics: [
+      { id: 'asi-boyasi-rd', label: 'Aşı Boyası', hex: '#C8A96A' },
+      { id: 'kehribar-ayazi-rd', label: 'Kehribar Ayazı', hex: '#C6B490' },
+      { id: 'savan-altini-rd', label: 'Savan Altını', hex: '#F2EFE6' },
+      { id: 'kanvas-kemik-rd', label: 'Kanvas Kemik', hex: '#DFD9C6' },
+      { id: 'tas-rd', label: 'Taş', hex: '#7A8894' },
+      { id: 'kumtasi-akintisi-rd', label: 'Kumtaşı Akıntısı', hex: '#B39B7A' },
+    ],
+  },
+]
+
+const BLACKOUT_COLLECTIONS: FabricCollection[] = [
+  {
+    id: 'hesperia',
+    label: 'Koleksiyon · Hesperia',
+    desc: 'Tam karartma dokumalar',
+    fabrics: [
+      { id: 'bulut-hatti', label: 'Bulut Hattı', hex: '#6E7379' },
+      { id: 'kayrak-ocagi', label: 'Kayrak Ocağı', hex: '#565B61' },
+      { id: 'grafit-tulu-b', label: 'Grafit Tülü', hex: '#83878C' },
+      { id: 'demir-sisi', label: 'Demir Sisi', hex: '#9DA0A3' },
+      { id: 'gumus-saz', label: 'Gümüş Saz', hex: '#BFBFBA' },
+      { id: 'kul-akintisi', label: 'Kül Akıntısı', hex: '#C9C7C2' },
+      { id: 'kumul-sisi', label: 'Kumul Sisi', hex: '#D5D1C7' },
+      { id: 'zeytin-tahili', label: 'Zeytin Tahılı', hex: '#B0B29E' },
+      { id: 'yulaf-tonu', label: 'Yulaf Tonu', hex: '#E3E1DA' },
+      { id: 'karbon-dokuma', label: 'Karbon Dokuma', hex: '#4A4C50' },
+      { id: 'mavi-alacakaranlik', label: 'Mavi Alacakaranlık', hex: '#5C6B84' },
+    ],
+  },
+]
+
+/** Işık kontrolüne göre kumaş koleksiyonları. */
+const COLLECTIONS_BY_LIGHT: Record<LightControlId, FabricCollection[]> = {
+  sheer: SHEER_COLLECTIONS,
+  'semi-sheer': SEMI_SHEER_COLLECTIONS,
+  'light-filtering': LIGHT_FILTERING_COLLECTIONS,
+  'room-darkening': ROOM_DARKENING_COLLECTIONS,
+  blackout: BLACKOUT_COLLECTIONS,
+}
+
+// ---------------------------------------------------------------------------
+// Fiyatlandırma — her ışık kontrolünün kendi fiyat tablosu var
+// ---------------------------------------------------------------------------
+
+interface PriceTable {
+  base: number
+  areaRatePerM2: number
+}
+
+const BASE_AREA_M2 = 0.56 // taban fiyat ~60×93 cm'e kadar olan ölçüyü kapsar
+
+const PRICE_TABLES: Record<LightControlId, PriceTable> = {
+  sheer: { base: 5550, areaRatePerM2: 3100 },
+  'semi-sheer': { base: 6100, areaRatePerM2: 3400 },
+  'light-filtering': { base: 6100, areaRatePerM2: 3400 },
+  'room-darkening': { base: 9450, areaRatePerM2: 5300 },
+  blackout: { base: 7350, areaRatePerM2: 4100 },
+}
+
 const LIFT_SYSTEMS = [
   { id: 'cordless', label: 'İpsiz (Cordless)', desc: 'Elle itip çekerek kullanılır; çocuk güvenliği için en iyi seçenek.', price: 0 },
   { id: 'cord-loop', label: 'Sonsuz Zincir', desc: 'Zincirle kontrol; büyük ve yüksek pencereler için pratik.', price: 900 },
@@ -137,21 +363,13 @@ const LINERS = [
   { id: 'blackout', label: 'Karartma Astar', desc: 'Işığın %99+ engellenir; yatak odası için ideal.', price: 1450 },
 ] as const
 
-// ---------------------------------------------------------------------------
-// Fiyatlandırma
-// ---------------------------------------------------------------------------
-
-const BASE_PRICE = 5550
-const BASE_AREA_M2 = 0.56 // taban fiyat ~60×93 cm'e kadar olan ölçüyü kapsar
-const AREA_RATE_PER_M2 = 3100
-
 interface ConfigState {
   room: string
   mount: (typeof MOUNTS)[number]['id']
   widthCm: number
   heightCm: number
   fold: (typeof FOLD_STYLES)[number]['id']
-  lightControl: (typeof LIGHT_CONTROLS)[number]['id']
+  lightControl: LightControlId
   fabric: FabricOption | null
   lift: (typeof LIFT_SYSTEMS)[number]['id']
   tdbu: (typeof TDBU_OPTIONS)[number]['id']
@@ -159,20 +377,21 @@ interface ConfigState {
 }
 
 function computePrice(state: ConfigState) {
+  const table = PRICE_TABLES[state.lightControl]
   const areaM2 = (state.widthCm / 100) * (state.heightCm / 100)
-  const sizeAdj = Math.max(0, (areaM2 - BASE_AREA_M2) * AREA_RATE_PER_M2)
+  const sizeAdj = Math.max(0, (areaM2 - BASE_AREA_M2) * table.areaRatePerM2)
   const fold = FOLD_STYLES.find((f) => f.id === state.fold)?.price ?? 0
   const lift = LIFT_SYSTEMS.find((l) => l.id === state.lift)?.price ?? 0
   const tdbu = TDBU_OPTIONS.find((t) => t.id === state.tdbu)?.price ?? 0
   const liner = LINERS.find((l) => l.id === state.liner)?.price ?? 0
   return {
-    base: BASE_PRICE,
+    base: table.base,
     sizeAdj: Math.round(sizeAdj),
     fold,
     lift,
     tdbu,
     liner,
-    total: Math.round(BASE_PRICE + sizeAdj + fold + lift + tdbu + liner),
+    total: Math.round(table.base + sizeAdj + fold + lift + tdbu + liner),
   }
 }
 
@@ -193,12 +412,10 @@ function RomanPreview({ fabric, fold, drop }: { fabric: FabricOption | null; fol
       <circle cx="90" cy="270" r="34" fill="#B9CDA4" opacity="0.8" />
       <circle cx="230" cy="280" r="44" fill="#A5BE8F" opacity="0.8" />
       <rect x="36" y="44" width="248" height="12" rx="3" fill="#C9BFAD" />
-      {/* gövde */}
       <rect x="38" y="56" width="244" height={shadeHeight} fill={fill} />
-      {/* pile stili */}
-      {fold === 'classic-flat' &&
+      {fold === 'front-stitched' &&
         segments.slice(1).map((y) => (
-          <line key={y} x1="38" x2="282" y1={y} y2={y} stroke="#000" strokeOpacity="0.12" strokeWidth="1.5" />
+          <line key={y} x1="38" x2="282" y1={y} y2={y} stroke="#000" strokeOpacity="0.14" strokeWidth="1.5" strokeDasharray="5 3" />
         ))}
       {fold === 'hobbled' &&
         segments.map((y) => (
@@ -219,7 +436,6 @@ function RomanPreview({ fabric, fold, drop }: { fabric: FabricOption | null; fol
           strokeOpacity="0.12"
         />
       )}
-      {/* alt etek */}
       {fold !== 'relaxed' && (
         <rect x="36" y={52 + shadeHeight} width="248" height="7" rx="3" fill={fill} stroke="#000" strokeOpacity="0.15" />
       )}
@@ -250,7 +466,7 @@ export function RomanShadeConfigurator() {
     mount: 'inside',
     widthCm: 90,
     heightCm: 120,
-    fold: 'seamless-flat',
+    fold: 'back-batten',
     lightControl: 'light-filtering',
     fabric: null,
     lift: 'cordless',
@@ -260,17 +476,26 @@ export function RomanShadeConfigurator() {
   const [submitted, setSubmitted] = useState(false)
 
   const price = useMemo(() => computePrice(state), [state])
+  const fabricCollections = COLLECTIONS_BY_LIGHT[state.lightControl]
   const drop = Math.min(1, Math.max(0.35, state.heightCm / 300))
   const dimsValid =
     state.widthCm >= 30 && state.widthCm <= 300 && state.heightCm >= 30 && state.heightCm <= 300
   const complete = state.fabric !== null && dimsValid
 
   function patch(p: Partial<ConfigState>) {
-    setState((s) => ({ ...s, ...p }))
+    setState((s) => {
+      const next = { ...s, ...p }
+      // Işık kontrolü değişince kumaş koleksiyonları da değişir → seçimi sıfırla.
+      if (p.lightControl && p.lightControl !== s.lightControl) {
+        next.fabric = null
+      }
+      return next
+    })
     setSubmitted(false)
   }
 
   const foldLabel = FOLD_STYLES.find((f) => f.id === state.fold)!.label
+  const lightLabel = LIGHT_CONTROLS.find((l) => l.id === state.lightControl)!.label
   const linerLabel = LINERS.find((l) => l.id === state.liner)!.label
 
   return (
@@ -286,7 +511,7 @@ export function RomanShadeConfigurator() {
             </div>
             <div className="text-right text-xs text-muted-foreground">
               <div>{state.widthCm} × {state.heightCm} cm · {foldLabel}</div>
-              <div>{state.fabric ? state.fabric.label : 'Kumaş seçilmedi'}</div>
+              <div>{lightLabel} · {state.fabric ? state.fabric.label : 'Kumaş seçilmedi'}</div>
             </div>
           </div>
           <div className="flex w-full flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -407,14 +632,14 @@ export function RomanShadeConfigurator() {
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            Işık geçirgenliği kumaş dokusu ve astar seçiminizle birlikte belirlenir; bu seçim ek
-            ücret getirmez.
+            Her geçirgenlik seviyesinin kendi kumaş koleksiyonları ve fiyat tablosu vardır; seçiminiz
+            bir sonraki adımdaki kumaşları belirler.
           </p>
         </Step>
 
         <Step no="06" title="Kumaş & Renk">
           <div className="space-y-5">
-            {COLLECTIONS.map((collection) => (
+            {fabricCollections.map((collection) => (
               <div key={collection.id}>
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {collection.label} <span className="font-normal normal-case">— {collection.desc}</span>
@@ -451,7 +676,8 @@ export function RomanShadeConfigurator() {
               </div>
             ))}
             <p className="text-xs text-muted-foreground">
-              Ekran renkleri ışığa göre değişebilir — emin olmak için ücretsiz kumaş örneği isteyin.
+              Koleksiyonlar seçtiğiniz ışık kontrolüne göre değişir. Ekran renkleri ışığa göre
+              farklılık gösterebilir — emin olmak için ücretsiz kumaş örneği isteyin.
             </p>
           </div>
         </Step>
@@ -522,7 +748,11 @@ export function RomanShadeConfigurator() {
               <CardTitle className="text-base">Teklifiniz</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <QuoteRow label="Taban fiyat" sub="Ölçü ve seçenekler öncesi başlangıç" value={formatTRY(price.base)} />
+              <QuoteRow
+                label="Taban fiyat"
+                sub={`${lightLabel} — ışık kontrolüne özel fiyat tablosu`}
+                value={formatTRY(price.base)}
+              />
               <QuoteRow
                 label="Ölçü farkı"
                 sub={`${state.widthCm} × ${state.heightCm} cm`}
