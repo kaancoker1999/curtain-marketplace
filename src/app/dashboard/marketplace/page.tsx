@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic'
 // Özel konfigüratör sayfası olan ürünler tıklanabilir.
 const PRODUCT_PAGES: Record<string, string> = {
   'cellular-shade': '/urun/cellular-shade',
+  'roman-shade': '/urun/roman-shade',
 }
 
 export default async function MarketplacePage() {
