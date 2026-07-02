@@ -33,12 +33,13 @@ export const PRICING_MODEL_LABELS: Record<PricingModel, string> = {
 }
 
 export const CATEGORY_LABELS: Record<ProductCategory, string> = {
-  CURTAIN: 'Perde',
+  CURTAIN: 'Fon Perde (Drapery)',
   SHEER: 'Tül',
   BLACKOUT: 'Karartma',
-  ROLLER_BLIND: 'Stor',
+  ROLLER_BLIND: 'Stor (Roller)',
   ZEBRA_BLIND: 'Zebra',
   VENETIAN_BLIND: 'Jaluzi',
+  WOOD_BLIND: 'Ahşap Perde',
   ROMAN_SHADE: 'Roman Perde',
   CELLULAR_SHADE: 'Hücreli Perde',
   TULLE: 'Tül Perde',

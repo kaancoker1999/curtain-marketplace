@@ -36,6 +36,7 @@ export type ProductCategory =
   | 'ROLLER_BLIND'
   | 'ZEBRA_BLIND'
   | 'VENETIAN_BLIND'
+  | 'WOOD_BLIND'
   | 'ROMAN_SHADE'
   | 'CELLULAR_SHADE'
   | 'TULLE'
