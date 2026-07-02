@@ -11,6 +11,26 @@ import type {
 
 export const DEMO_PROVIDERS: Provider[] = [
   {
+    id: 'org-carra-woods',
+    name: 'Carra Woods',
+    slug: 'carra-woods',
+    description: 'Hücreli (petek) perde uzmanı üretici — ölçüye özel üretim, 7-14 iş gününde sevkiyat.',
+    roles: ['MANUFACTURER'],
+    city: 'Istanbul',
+    country: 'Türkiye',
+    lat: 41.0451,
+    lng: 28.895,
+    verified: true,
+    ratingAvg: 4.9,
+    ratingCount: 1050,
+    services: [
+      { type: 'SEWING', title: 'Hücreli perde üretimi', pricingModel: 'PER_PANEL', basePrice: 3600, leadTimeDays: 10 },
+      { type: 'MOTORIZATION', title: 'Motorlu sistem entegrasyonu', pricingModel: 'FIXED', basePrice: 7500, leadTimeDays: 12 },
+    ],
+    capacity: { capacityUnits: 600, bookedUnits: 210, unit: 'panels' },
+    fabricRollWidthsCm: [300],
+  },
+  {
     id: 'org-atlas',
     name: 'Atlas Curtain Manufacturing',
     slug: 'atlas-curtain-manufacturing',
@@ -148,26 +168,6 @@ export const DEMO_PROVIDERS: Provider[] = [
     ratingAvg: 4.3,
     ratingCount: 210,
     services: [],
-  },
-  {
-    id: 'org-carra-woods',
-    name: 'Carra Woods',
-    slug: 'carra-woods',
-    description: 'Hücreli (petek) perde uzmanı üretici — ölçüye özel üretim, 7-14 iş gününde sevkiyat.',
-    roles: ['MANUFACTURER'],
-    city: 'Istanbul',
-    country: 'Türkiye',
-    lat: 41.0451,
-    lng: 28.895,
-    verified: true,
-    ratingAvg: 4.8,
-    ratingCount: 64,
-    services: [
-      { type: 'SEWING', title: 'Hücreli perde üretimi', pricingModel: 'PER_PANEL', basePrice: 3600, leadTimeDays: 10 },
-      { type: 'MOTORIZATION', title: 'Motorlu sistem entegrasyonu', pricingModel: 'FIXED', basePrice: 7500, leadTimeDays: 12 },
-    ],
-    capacity: { capacityUnits: 600, bookedUnits: 210, unit: 'panels' },
-    fabricRollWidthsCm: [300],
   },
   {
     id: 'org-studio-perde',
