@@ -23,6 +23,14 @@ export const DEMO_PROVIDERS: Provider[] = [
       'zincirli ve motorlu mekanizma seçeneklerinin tamamı kendi atölyesinde monte edilir; her ' +
       'perde tam uyum garantisiyle gönderilir.',
     salesCount: 1250,
+    catalogs: [
+      {
+        title: 'LUMIA Cellular Shades Kataloğu 2025',
+        file: '/catalogs/lumia-cellular-shades-2025.pdf',
+        pages: 181,
+        sizeMB: 18,
+      },
+    ],
     roles: ['MANUFACTURER'],
     city: 'Istanbul',
     country: 'Türkiye',

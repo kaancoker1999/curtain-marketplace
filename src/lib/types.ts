@@ -54,6 +54,14 @@ export type OrderStatus =
   | 'CANCELLED'
   | 'DISPUTED'
 
+export interface ProviderCatalog {
+  title: string
+  /** public/ altındaki dosya yolu, örn. /catalogs/lumia-cellular-shades-2025.pdf */
+  file: string
+  pages?: number
+  sizeMB?: number
+}
+
 export interface ServiceOfferingSummary {
   type: ServiceType
   title: string
@@ -80,6 +88,8 @@ export interface Provider {
   about?: string
   /** Platform üzerindeki toplam satış adedi (kademeli gösterilir: 100+, 500+…). */
   salesCount?: number
+  /** Üreticinin yüklediği PDF katalogları. */
+  catalogs?: ProviderCatalog[]
   roles: OrgRole[]
   city: string
   country: string
