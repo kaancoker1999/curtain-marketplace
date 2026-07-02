@@ -1,13 +1,15 @@
 'use client'
 
-// Made-to-measure cellular shade configurator (Carra Woods product).
-// Eight-step wizard modeled on industry-standard cellular shade ordering flows:
-// room → mount → dimensions → light control → cell type → color → lift → quote.
-// Pricing is computed live from base price + size adjustment + option deltas.
+// Ölçüye özel hücreli perde konfigüratörü (Carra Woods ürünü).
+// Kural motoru: hücre tipi seçenekleri ışık kontrolüne bağlıdır, renk paleti
+// ve fiyat tablosu (taban + m² oranı) her ışık kontrolü × hücre tipi
+// kombinasyonu için ayrı tanımlıdır.
+//   - Tül Geçirgen  → yalnız Tek Hücre, 4 tül rengi
+//   - Işık Süzen    → Tek / Çift / Üç Hücre, kombinasyona göre palet
+//   - Karartma      → Tek / Çift Hücre, karartma paletleri
 
 import { useMemo, useState } from 'react'
 import { BadgeCheck, Check, Info, ShieldCheck, Truck } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -16,7 +18,7 @@ import { formatTRY } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
-// Option data
+// Seçenek verileri
 // ---------------------------------------------------------------------------
 
 const MOUNTS = [
@@ -34,17 +36,37 @@ const MOUNTS = [
   },
 ] as const
 
-const LIGHT_CONTROLS = [
-  { id: 'sheer', label: 'Tül Geçirgen', desc: 'Işığı yumuşatır, manzarayı korur.', price: 0 },
-  { id: 'light-filtering', label: 'Işık Süzen', desc: 'Güneşi süzer, gündüz mahremiyeti sağlar.', price: 0 },
-  { id: 'blackout', label: 'Karartma', desc: 'Işığı büyük ölçüde engeller; yatak odası için ideal.', price: 600 },
-] as const
+type LightControlId = 'sheer' | 'light-filtering' | 'blackout'
+type CellTypeId = 'single' | 'double' | 'triple'
 
-const CELL_TYPES = [
-  { id: 'single', label: 'Tek Hücre', desc: 'İnce profil, standart yalıtım.', price: 0 },
-  { id: 'double', label: 'Çift Hücre', desc: 'Güçlü yalıtım, üstün ses sönümleme.', price: 950 },
-  { id: 'triple', label: 'Üç Hücre', desc: 'Sert iklimler için maksimum enerji verimliliği.', price: 1700 },
-] as const
+const LIGHT_CONTROLS: { id: LightControlId; label: string; desc: string }[] = [
+  { id: 'sheer', label: 'Tül Geçirgen', desc: 'Maksimum ışık, zarif dokuma; manzarayı korur.' },
+  { id: 'light-filtering', label: 'Işık Süzen', desc: 'Güneşi süzer, gündüz mahremiyeti sağlar.' },
+  { id: 'blackout', label: 'Karartma', desc: 'Işığın %99+ engellenir; yatak odası için ideal.' },
+]
+
+const CELL_TYPES: { id: CellTypeId; label: string; desc: string }[] = [
+  { id: 'single', label: 'Tek Hücre', desc: 'İnce profil, standart yalıtım.' },
+  { id: 'double', label: 'Çift Hücre', desc: 'Güçlü yalıtım, üstün ses sönümleme.' },
+  { id: 'triple', label: 'Üç Hücre', desc: 'Sert iklimler için maksimum enerji verimliliği.' },
+]
+
+/** Işık kontrolüne göre seçilebilir hücre tipleri. */
+const CELL_AVAILABILITY: Record<LightControlId, CellTypeId[]> = {
+  sheer: ['single'],
+  'light-filtering': ['single', 'double', 'triple'],
+  blackout: ['single', 'double'],
+}
+
+const CELL_UNAVAILABLE_NOTE: Record<LightControlId, string> = {
+  sheer: 'Tül geçirgen kumaş yalnızca tek hücre yapısında üretilir.',
+  'light-filtering': '',
+  blackout: 'Karartma kumaş tek veya çift hücre yapısında üretilir.',
+}
+
+// ---------------------------------------------------------------------------
+// Renk paletleri (kombinasyona göre)
+// ---------------------------------------------------------------------------
 
 interface ColorOption {
   id: string
@@ -59,63 +81,117 @@ interface ColorGroup {
   colors: ColorOption[]
 }
 
-const COLOR_GROUPS: ColorGroup[] = [
-  {
-    id: 'half-solids',
-    label: '1,3 cm (½") Hücre · Standart Düz Renkler',
-    colors: [
-      { id: 'cotton', label: 'Pamuk', hex: '#F4F1E8' },
-      { id: 'white-sand', label: 'Beyaz Kum', hex: '#E8E1D0' },
-      { id: 'angora', label: 'Angora', hex: '#D9CCB4' },
-      { id: 'khaki', label: 'Haki', hex: '#C2B08D' },
-      { id: 'biscuit', label: 'Bisküvi', hex: '#C9A470' },
-      { id: 'maize', label: 'Mısır', hex: '#C68E4C' },
-      { id: 'tan', label: 'Taba', hex: '#B57B3F' },
-      { id: 'spice', label: 'Baharat', hex: '#A34B2B' },
-      { id: 'cocoa', label: 'Kakao', hex: '#6C4B37' },
-      { id: 'willow', label: 'Söğüt', hex: '#8A8C5B' },
-      { id: 'pomegranate', label: 'Nar', hex: '#8E3A3C' },
-      { id: 'gray-sheen', label: 'Gri Şimmer', hex: '#B9B8B3' },
-      { id: 'steel', label: 'Çelik', hex: '#5A6470' },
-      { id: 'navy', label: 'Lacivert', hex: '#3A4458' },
-      { id: 'black', label: 'Siyah', hex: '#2B2B2B' },
-      { id: 'plum', label: 'Erik', hex: '#4E3A4E' },
-      { id: 'soft-white', label: 'Yumuşak Beyaz', hex: '#EFEDE4' },
-      { id: 'dark-chocolate', label: 'Bitter Çikolata', hex: '#3E2F28' },
-      { id: 'whisper', label: 'Fısıltı', hex: '#D8D8D0' },
-    ],
-  },
-  {
-    id: 'threequarter-solids',
-    label: '1,9 cm (¾") Hücre · Standart Düz Renkler',
-    colors: [
-      { id: 'cotton-34', label: 'Pamuk', hex: '#F4F1E8' },
-      { id: 'white-sand-34', label: 'Beyaz Kum', hex: '#E8E1D0' },
-      { id: 'angora-34', label: 'Angora', hex: '#D9CCB4' },
-      { id: 'khaki-34', label: 'Haki', hex: '#C2B08D' },
-      { id: 'biscuit-34', label: 'Bisküvi', hex: '#C9A470' },
-      { id: 'maize-34', label: 'Mısır', hex: '#C68E4C' },
-      { id: 'willow-34', label: 'Söğüt', hex: '#8A8C5B' },
-      { id: 'gray-sheen-34', label: 'Gri Şimmer', hex: '#B9B8B3' },
-      { id: 'steel-34', label: 'Çelik', hex: '#5A6470' },
-      { id: 'navy-34', label: 'Lacivert', hex: '#3A4458' },
-      { id: 'black-34', label: 'Siyah', hex: '#2B2B2B' },
-      { id: 'soft-white-34', label: 'Yumuşak Beyaz', hex: '#EFEDE4' },
-      { id: 'whisper-34', label: 'Fısıltı', hex: '#D8D8D0' },
-    ],
-  },
-  {
-    id: 'designer-prints',
-    label: '1,9 cm (¾") Hücre · Tasarım Desenleri',
-    colors: [
-      { id: 'sand-print', label: 'Kum', hex: '#D6C8B0', price: 350 },
-      { id: 'mist-print', label: 'Sis', hex: '#BCBCC2', price: 350 },
-      { id: 'sky-print', label: 'Gök', hex: '#9FB8CE', price: 350 },
-      { id: 'cinder-print', label: 'Kül', hex: '#A89E94', price: 350 },
-      { id: 'storm-print', label: 'Fırtına', hex: '#8A8F98', price: 350 },
-    ],
-  },
+const C = {
+  cotton: { label: 'Pamuk', hex: '#F4F1E8' },
+  whiteSand: { label: 'Beyaz Kum', hex: '#E8E1D0' },
+  angora: { label: 'Angora', hex: '#D9CCB4' },
+  khaki: { label: 'Haki', hex: '#C2B08D' },
+  biscuit: { label: 'Bisküvi', hex: '#C9A470' },
+  maize: { label: 'Mısır', hex: '#C68E4C' },
+  tan: { label: 'Taba', hex: '#B57B3F' },
+  spice: { label: 'Baharat', hex: '#A34B2B' },
+  cocoa: { label: 'Kakao', hex: '#6C4B37' },
+  willow: { label: 'Söğüt', hex: '#8A8C5B' },
+  pomegranate: { label: 'Nar', hex: '#8E3A3C' },
+  graySheen: { label: 'Gri Şimmer', hex: '#B9B8B3' },
+  steel: { label: 'Çelik', hex: '#5A6470' },
+  navy: { label: 'Lacivert', hex: '#3A4458' },
+  black: { label: 'Siyah', hex: '#2B2B2B' },
+  plum: { label: 'Erik', hex: '#4E3A4E' },
+  softWhite: { label: 'Yumuşak Beyaz', hex: '#EFEDE4' },
+  darkChocolate: { label: 'Bitter Çikolata', hex: '#3E2F28' },
+  whisper: { label: 'Fısıltı', hex: '#D8D8D0' },
+} as const
+
+function colors(ids: (keyof typeof C)[], suffix: string): ColorOption[] {
+  return ids.map((id) => ({ id: `${id}-${suffix}`, label: C[id].label, hex: C[id].hex }))
+}
+
+const SOLIDS_19: (keyof typeof C)[] = [
+  'cotton', 'whiteSand', 'angora', 'khaki', 'biscuit', 'maize', 'tan', 'spice', 'cocoa',
+  'willow', 'pomegranate', 'graySheen', 'steel', 'navy', 'black', 'plum', 'softWhite',
+  'darkChocolate', 'whisper',
 ]
+const SOLIDS_13: (keyof typeof C)[] = [
+  'cotton', 'whiteSand', 'angora', 'khaki', 'biscuit', 'maize', 'willow', 'graySheen',
+  'steel', 'navy', 'black', 'softWhite', 'whisper',
+]
+const TRIPLE_15: (keyof typeof C)[] = [
+  'cotton', 'whiteSand', 'angora', 'khaki', 'biscuit', 'maize', 'tan', 'spice', 'cocoa',
+  'willow', 'pomegranate', 'graySheen', 'steel', 'black', 'whisper',
+]
+const BLACKOUT_HALF_13: (keyof typeof C)[] = [
+  'cotton', 'whiteSand', 'angora', 'khaki', 'biscuit', 'maize', 'cocoa', 'willow',
+  'graySheen', 'steel', 'softWhite', 'darkChocolate', 'whisper',
+]
+const BLACKOUT_34_11: (keyof typeof C)[] = [
+  'cotton', 'whiteSand', 'angora', 'khaki', 'biscuit', 'maize', 'willow', 'graySheen',
+  'steel', 'softWhite', 'whisper',
+]
+
+const SHEER_COLORS: ColorOption[] = [
+  { id: 'snow-white-sheer', label: 'Kar Beyazı', hex: '#F7F6F2' },
+  { id: 'beach-beige-sheer', label: 'Kumsal Beji', hex: '#E5DCC7' },
+  { id: 'moon-rock-sheer', label: 'Ay Taşı', hex: '#6A675F' },
+  { id: 'pebble-sheer', label: 'Çakıl', hex: '#C9C7C0' },
+]
+
+const DESIGNER_PRINTS: ColorOption[] = [
+  { id: 'sand-print', label: 'Kum', hex: '#D6C8B0', price: 350 },
+  { id: 'mist-print', label: 'Sis', hex: '#BCBCC2', price: 350 },
+  { id: 'sky-print', label: 'Gök', hex: '#9FB8CE', price: 350 },
+  { id: 'cinder-print', label: 'Kül', hex: '#A89E94', price: 350 },
+  { id: 'storm-print', label: 'Fırtına', hex: '#8A8F98', price: 350 },
+]
+
+/** Her ışık kontrolü × hücre tipi kombinasyonunun renk grupları. */
+function getColorGroups(light: LightControlId, cell: CellTypeId): ColorGroup[] {
+  if (light === 'sheer') {
+    return [{ id: 'sheer', label: '1,9 cm (¾") Hücre · Tül Renkleri', colors: SHEER_COLORS }]
+  }
+  if (light === 'blackout') {
+    return [
+      { id: 'bo-half', label: '1,3 cm (½") Hücre · Karartma Renkleri', colors: colors(BLACKOUT_HALF_13, 'boh') },
+      { id: 'bo-34', label: '1,9 cm (¾") Hücre · Karartma Renkleri', colors: colors(BLACKOUT_34_11, 'bo34') },
+    ]
+  }
+  // Işık süzen
+  if (cell === 'single') {
+    return [
+      { id: 'lf-half', label: '1,3 cm (½") Hücre · Standart Düz Renkler', colors: colors(SOLIDS_19, 'lfh') },
+      { id: 'lf-34', label: '1,9 cm (¾") Hücre · Standart Düz Renkler', colors: colors(SOLIDS_13, 'lf34') },
+      { id: 'lf-prints', label: '1,9 cm (¾") Hücre · Tasarım Desenleri', colors: DESIGNER_PRINTS },
+    ]
+  }
+  if (cell === 'double') {
+    return [
+      { id: 'lf-38d', label: '1 cm (⅜") Hücre · Standart Düz Renkler', colors: colors(SOLIDS_19, 'lf38d') },
+    ]
+  }
+  return [
+    { id: 'lf-38t', label: '1 cm (⅜") Hücre · Standart Düz Renkler', colors: colors(TRIPLE_15, 'lf38t') },
+  ]
+}
+
+// ---------------------------------------------------------------------------
+// Fiyatlandırma — her kombinasyonun kendi fiyat tablosu var
+// ---------------------------------------------------------------------------
+
+interface PriceTable {
+  base: number // taban fiyat (₺) — BASE_AREA_M2'ye kadar olan ölçüyü kapsar
+  areaRatePerM2: number // taban alanı aşan her m² için ₺
+}
+
+const BASE_AREA_M2 = 0.56 // ~60×93 cm
+
+const PRICE_TABLES: Record<string, PriceTable> = {
+  'sheer-single': { base: 6500, areaRatePerM2: 4900 },
+  'light-filtering-single': { base: 3600, areaRatePerM2: 2700 },
+  'light-filtering-double': { base: 4250, areaRatePerM2: 3200 },
+  'light-filtering-triple': { base: 5050, areaRatePerM2: 3800 },
+  'blackout-single': { base: 4800, areaRatePerM2: 3600 },
+  'blackout-double': { base: 5300, areaRatePerM2: 4000 },
+}
 
 const LIFT_SYSTEMS = [
   { id: 'cordless', label: 'İpsiz (Cordless)', desc: 'Elle itip çekerek kullanılır; çocuk güvenliği için en iyi seçenek.', price: 0 },
@@ -128,55 +204,40 @@ const TDBU_OPTIONS = [
   { id: 'tdbu', label: 'Üstten Aç / Alttan Kapa (TDBU)', desc: 'Üstten de açılır; mahremiyeti korurken tepeden ışık alırsınız.', price: 2050 },
 ] as const
 
-// ---------------------------------------------------------------------------
-// Pricing
-// ---------------------------------------------------------------------------
-
-const BASE_PRICE = 3600
-const BASE_AREA_M2 = 0.56 // baz fiyat ~60×93 cm'e kadar olan ölçüyü kapsar
-const AREA_RATE_PER_M2 = 2700
-
-function computePrice(state: ConfigState) {
-  const areaM2 = (state.widthCm / 100) * (state.heightCm / 100)
-  const sizeAdj = Math.max(0, (areaM2 - BASE_AREA_M2) * AREA_RATE_PER_M2)
-  const light = LIGHT_CONTROLS.find((l) => l.id === state.lightControl)?.price ?? 0
-  const cell = CELL_TYPES.find((c) => c.id === state.cellType)?.price ?? 0
-  const color = state.color?.price ?? 0
-  const lift = LIFT_SYSTEMS.find((l) => l.id === state.lift)?.price ?? 0
-  const tdbu = TDBU_OPTIONS.find((t) => t.id === state.tdbu)?.price ?? 0
-  const total = BASE_PRICE + sizeAdj + light + cell + color + lift + tdbu
-  return {
-    sizeAdj: round2(sizeAdj),
-    light,
-    cell,
-    color,
-    lift,
-    tdbu,
-    total: round2(total),
-  }
-}
-
-function round2(n: number) {
-  return Math.round(n * 100) / 100
-}
-
 interface ConfigState {
   room: string
   mount: (typeof MOUNTS)[number]['id']
   widthCm: number
   heightCm: number
-  lightControl: (typeof LIGHT_CONTROLS)[number]['id']
-  cellType: (typeof CELL_TYPES)[number]['id']
+  lightControl: LightControlId
+  cellType: CellTypeId
   color: ColorOption | null
   lift: (typeof LIFT_SYSTEMS)[number]['id']
   tdbu: (typeof TDBU_OPTIONS)[number]['id']
 }
 
+function computePrice(state: ConfigState) {
+  const table = PRICE_TABLES[`${state.lightControl}-${state.cellType}`] ?? PRICE_TABLES['light-filtering-single']
+  const areaM2 = (state.widthCm / 100) * (state.heightCm / 100)
+  const sizeAdj = Math.max(0, (areaM2 - BASE_AREA_M2) * table.areaRatePerM2)
+  const color = state.color?.price ?? 0
+  const lift = LIFT_SYSTEMS.find((l) => l.id === state.lift)?.price ?? 0
+  const tdbu = TDBU_OPTIONS.find((t) => t.id === state.tdbu)?.price ?? 0
+  return {
+    base: table.base,
+    sizeAdj: Math.round(sizeAdj),
+    color,
+    lift,
+    tdbu,
+    total: Math.round(table.base + sizeAdj + color + lift + tdbu),
+  }
+}
+
 // ---------------------------------------------------------------------------
-// Live preview
+// Canlı önizleme
 // ---------------------------------------------------------------------------
 
-function ShadePreview({ color, cellType, drop }: { color: ColorOption | null; cellType: string; drop: number }) {
+function ShadePreview({ color, cellType, drop, sheer }: { color: ColorOption | null; cellType: string; drop: number; sheer: boolean }) {
   const fill = color?.hex ?? '#E8E1D0'
   const lineGap = cellType === 'single' ? 10 : cellType === 'double' ? 7 : 5
   const shadeHeight = 40 + drop * 190
@@ -186,28 +247,19 @@ function ShadePreview({ color, cellType, drop }: { color: ColorOption | null; ce
   }
   return (
     <svg viewBox="0 0 320 340" className="w-full max-w-sm" role="img" aria-label="Perde önizleme">
-      {/* window frame */}
       <rect x="20" y="20" width="280" height="300" rx="4" fill="#FFFFFF" stroke="#D8D2C6" strokeWidth="6" />
       <rect x="40" y="40" width="240" height="260" fill="#EAF2F7" />
-      {/* view */}
       <circle cx="90" cy="270" r="34" fill="#B9CDA4" opacity="0.8" />
       <circle cx="230" cy="280" r="44" fill="#A5BE8F" opacity="0.8" />
-      {/* headrail */}
       <rect x="36" y="44" width="248" height="14" rx="3" fill="#C9BFAD" />
-      {/* shade */}
-      <rect x="38" y="56" width="244" height={shadeHeight} fill={fill} />
+      <rect x="38" y="56" width="244" height={shadeHeight} fill={fill} opacity={sheer ? 0.55 : 1} />
       {lines.map((y) => (
         <line key={y} x1="38" x2="282" y1={y} y2={y} stroke="#000" strokeOpacity="0.08" strokeWidth="1.5" />
       ))}
-      {/* bottom rail */}
       <rect x="36" y={52 + shadeHeight} width="248" height="8" rx="3" fill={fill} stroke="#000" strokeOpacity="0.15" />
     </svg>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Step section wrapper
-// ---------------------------------------------------------------------------
 
 function Step({ no, title, children }: { no: string; title: string; children: React.ReactNode }) {
   return (
@@ -223,7 +275,7 @@ function Step({ no, title, children }: { no: string; title: string; children: Re
 }
 
 // ---------------------------------------------------------------------------
-// Main configurator
+// Ana konfigüratör
 // ---------------------------------------------------------------------------
 
 export function CellularShadeConfigurator() {
@@ -241,29 +293,59 @@ export function CellularShadeConfigurator() {
   const [submitted, setSubmitted] = useState(false)
 
   const price = useMemo(() => computePrice(state), [state])
+  const colorGroups = useMemo(
+    () => getColorGroups(state.lightControl, state.cellType),
+    [state.lightControl, state.cellType],
+  )
+  const availableCells = CELL_AVAILABILITY[state.lightControl]
   const drop = Math.min(1, Math.max(0.35, state.heightCm / 300))
   const dimsValid =
     state.widthCm >= 30 && state.widthCm <= 300 && state.heightCm >= 30 && state.heightCm <= 300
   const complete = state.color !== null && dimsValid
 
   function patch(p: Partial<ConfigState>) {
-    setState((s) => ({ ...s, ...p }))
+    setState((s) => {
+      const next = { ...s, ...p }
+      // Işık kontrolü değişince: hücre tipini geçerli sete indir, rengi sıfırla.
+      if (p.lightControl && p.lightControl !== s.lightControl) {
+        if (!CELL_AVAILABILITY[p.lightControl].includes(next.cellType)) {
+          next.cellType = 'single'
+        }
+        next.color = null
+      }
+      // Hücre tipi değişince: seçili renk yeni palette yoksa sıfırla.
+      if (p.cellType && p.cellType !== s.cellType) {
+        const palette = getColorGroups(next.lightControl, next.cellType).flatMap((g) => g.colors)
+        if (next.color && !palette.some((c) => c.id === next.color!.id)) {
+          next.color = null
+        }
+      }
+      return next
+    })
     setSubmitted(false)
   }
 
+  const lightLabel = LIGHT_CONTROLS.find((l) => l.id === state.lightControl)!.label
+  const cellLabel = CELL_TYPES.find((c) => c.id === state.cellType)!.label
+
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr]">
-      {/* Left: sticky preview + price bar */}
+      {/* Sol: yapışkan önizleme + fiyat */}
       <div className="lg:sticky lg:top-20 lg:self-start">
         <div className="flex flex-col items-center gap-4 rounded-xl border bg-muted/20 p-6">
-          <ShadePreview color={state.color} cellType={state.cellType} drop={drop} />
+          <ShadePreview
+            color={state.color}
+            cellType={state.cellType}
+            drop={drop}
+            sheer={state.lightControl === 'sheer'}
+          />
           <div className="flex w-full items-center justify-between border-t pt-4">
             <div>
               <div className="text-sm text-muted-foreground">Hücreli Perde</div>
               <div className="text-2xl font-semibold">{formatTRY(price.total)}</div>
             </div>
             <div className="text-right text-xs text-muted-foreground">
-              <div>{state.widthCm} × {state.heightCm} cm · {MOUNTS.find((m) => m.id === state.mount)?.label}</div>
+              <div>{state.widthCm} × {state.heightCm} cm · {lightLabel} · {cellLabel}</div>
               <div>{state.color ? state.color.label : 'Renk seçilmedi'}</div>
             </div>
           </div>
@@ -275,7 +357,7 @@ export function CellularShadeConfigurator() {
         </div>
       </div>
 
-      {/* Right: wizard */}
+      {/* Sağ: sihirbaz */}
       <div className="space-y-10">
         <Step no="01" title="Oda">
           <div className="space-y-2">
@@ -361,7 +443,6 @@ export function CellularShadeConfigurator() {
               >
                 <div className="text-sm font-medium">{l.label}</div>
                 <p className="mt-1 text-xs text-muted-foreground">{l.desc}</p>
-                <p className="mt-2 text-xs font-medium">{l.price ? `+${formatTRY(l.price)}` : 'Ücretsiz'}</p>
               </button>
             ))}
           </div>
@@ -369,27 +450,44 @@ export function CellularShadeConfigurator() {
 
         <Step no="05" title="Hücre Tipi">
           <div className="grid grid-cols-3 gap-3">
-            {CELL_TYPES.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => patch({ cellType: c.id })}
-                className={cn(
-                  'rounded-lg border p-4 text-left transition-colors',
-                  state.cellType === c.id ? 'border-primary bg-primary/5' : 'hover:bg-accent',
-                )}
-              >
-                <div className="text-sm font-medium">{c.label}</div>
-                <p className="mt-1 text-xs text-muted-foreground">{c.desc}</p>
-                <p className="mt-2 text-xs font-medium">{c.price ? `+${formatTRY(c.price)}` : 'Ücretsiz'}</p>
-              </button>
-            ))}
+            {CELL_TYPES.map((c) => {
+              const available = availableCells.includes(c.id)
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  disabled={!available}
+                  onClick={() => patch({ cellType: c.id })}
+                  className={cn(
+                    'rounded-lg border p-4 text-left transition-colors',
+                    state.cellType === c.id && available
+                      ? 'border-primary bg-primary/5'
+                      : available
+                        ? 'hover:bg-accent'
+                        : 'cursor-not-allowed opacity-40',
+                  )}
+                >
+                  <div className="text-sm font-medium">{c.label}</div>
+                  <p className="mt-1 text-xs text-muted-foreground">{c.desc}</p>
+                  {!available && (
+                    <p className="mt-2 text-xs font-medium text-muted-foreground">
+                      Bu kumaşta yok
+                    </p>
+                  )}
+                </button>
+              )
+            })}
           </div>
+          {CELL_UNAVAILABLE_NOTE[state.lightControl] && (
+            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Info className="size-3" /> {CELL_UNAVAILABLE_NOTE[state.lightControl]}
+            </p>
+          )}
         </Step>
 
         <Step no="06" title="Renk">
           <div className="space-y-5">
-            {COLOR_GROUPS.map((group) => (
+            {colorGroups.map((group) => (
               <div key={group.id}>
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {group.label}
@@ -426,7 +524,8 @@ export function CellularShadeConfigurator() {
               </div>
             ))}
             <p className="text-xs text-muted-foreground">
-              Ekran renkleri ışığa göre değişebilir — emin olmak için ücretsiz kumaş örneği isteyin.
+              Renkler seçtiğiniz ışık kontrolü ve hücre tipine göre değişir. Ekran renkleri ışığa
+              göre farklılık gösterebilir — emin olmak için ücretsiz kumaş örneği isteyin.
             </p>
           </div>
         </Step>
@@ -477,17 +576,31 @@ export function CellularShadeConfigurator() {
               <CardTitle className="text-base">Teklifiniz</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <QuoteRow label="Baz fiyat" sub="Ölçü ve seçenekler öncesi başlangıç" value={formatTRY(BASE_PRICE)} />
+              <QuoteRow
+                label="Taban fiyat"
+                sub={`${lightLabel} · ${cellLabel} — kombinasyona özel fiyat tablosu`}
+                value={formatTRY(price.base)}
+              />
               <QuoteRow
                 label="Ölçü farkı"
                 sub={`${state.widthCm} × ${state.heightCm} cm`}
                 value={price.sizeAdj ? `+${formatTRY(price.sizeAdj)}` : 'Dahil'}
               />
-              <QuoteRow label="Işık kontrolü" sub={LIGHT_CONTROLS.find((l) => l.id === state.lightControl)!.label} value={price.light ? `+${formatTRY(price.light)}` : 'Ücretsiz'} />
-              <QuoteRow label="Hücre tipi" sub={CELL_TYPES.find((c) => c.id === state.cellType)!.label} value={price.cell ? `+${formatTRY(price.cell)}` : 'Ücretsiz'} />
-              <QuoteRow label="Renk" sub={state.color?.label ?? 'Seçilmedi'} value={price.color ? `+${formatTRY(price.color)}` : 'Ücretsiz'} />
-              <QuoteRow label="Kontrol" sub={LIFT_SYSTEMS.find((l) => l.id === state.lift)!.label} value={price.lift ? `+${formatTRY(price.lift)}` : 'Ücretsiz'} />
-              <QuoteRow label="TDBU" sub={TDBU_OPTIONS.find((t) => t.id === state.tdbu)!.label} value={price.tdbu ? `+${formatTRY(price.tdbu)}` : 'Ücretsiz'} />
+              <QuoteRow
+                label="Renk"
+                sub={state.color?.label ?? 'Seçilmedi'}
+                value={price.color ? `+${formatTRY(price.color)}` : 'Dahil'}
+              />
+              <QuoteRow
+                label="Mekanizma"
+                sub={LIFT_SYSTEMS.find((l) => l.id === state.lift)!.label}
+                value={price.lift ? `+${formatTRY(price.lift)}` : 'Dahil'}
+              />
+              <QuoteRow
+                label="Açılım"
+                sub={TDBU_OPTIONS.find((t) => t.id === state.tdbu)!.label}
+                value={price.tdbu ? `+${formatTRY(price.tdbu)}` : 'Dahil'}
+              />
               <div className="flex items-center justify-between border-t pt-3">
                 <span className="font-medium">Tahmini Toplam</span>
                 <span className="text-2xl font-semibold">{formatTRY(price.total)}</span>
