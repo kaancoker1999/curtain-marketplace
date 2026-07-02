@@ -150,6 +150,26 @@ export const DEMO_PROVIDERS: Provider[] = [
     services: [],
   },
   {
+    id: 'org-carra-woods',
+    name: 'Carra Woods',
+    slug: 'carra-woods',
+    description: 'Hücreli (petek) perde uzmanı üretici — ölçüye özel üretim, 7-14 iş gününde sevkiyat.',
+    roles: ['MANUFACTURER'],
+    city: 'Istanbul',
+    country: 'Türkiye',
+    lat: 41.0451,
+    lng: 28.895,
+    verified: true,
+    ratingAvg: 4.8,
+    ratingCount: 64,
+    services: [
+      { type: 'SEWING', title: 'Hücreli perde üretimi', pricingModel: 'PER_PANEL', basePrice: 89.9, leadTimeDays: 10 },
+      { type: 'MOTORIZATION', title: 'Motorlu sistem entegrasyonu', pricingModel: 'FIXED', basePrice: 187.5, leadTimeDays: 12 },
+    ],
+    capacity: { capacityUnits: 600, bookedUnits: 210, unit: 'panels' },
+    fabricRollWidthsCm: [300],
+  },
+  {
     id: 'org-studio-perde',
     name: 'Studio Perde Design',
     slug: 'studio-perde-design',
@@ -169,6 +189,7 @@ export const DEMO_PROVIDERS: Provider[] = [
 ]
 
 export const DEMO_PRODUCTS: ProductSummary[] = [
+  { id: 'prod-cellular', orgId: 'org-carra-woods', orgName: 'Carra Woods', name: 'Hücreli Perde (Cellular Shade)', slug: 'cellular-shade', category: 'CELLULAR_SHADE', basePrice: 89.9, currency: 'USD', leadTimeDays: 10, description: 'Petek yapılı, ısı ve ses yalıtımlı; ölçüye özel üretim. Tül geçirgen, ışık süzen ve karartma seçenekleri.' },
   { id: 'prod-1', orgId: 'org-atlas', orgName: 'Atlas Curtain Manufacturing', name: 'Classic Pinch Pleat Curtain', slug: 'classic-pinch-pleat', category: 'CURTAIN', basePrice: 89, currency: 'USD', leadTimeDays: 7, description: 'Double pinch pleat, lined, made to measure.' },
   { id: 'prod-2', orgId: 'org-atlas', orgName: 'Atlas Curtain Manufacturing', name: 'Hotel Blackout Panel', slug: 'hotel-blackout-panel', category: 'BLACKOUT', basePrice: 119, currency: 'USD', leadTimeDays: 10, description: '3-pass blackout, flame retardant, contract grade.' },
   { id: 'prod-3', orgId: 'org-denizli', orgName: 'Denizli Textile Works', name: 'Voile Sheer Panel', slug: 'voile-sheer-panel', category: 'SHEER', basePrice: 45, currency: 'USD', leadTimeDays: 5, description: 'Feather-light voile with lead-weighted hem.' },

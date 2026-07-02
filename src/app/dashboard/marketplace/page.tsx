@@ -1,7 +1,13 @@
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getFabrics, getProducts } from '@/lib/data'
+
+// Products with a dedicated configurator page get a click-through.
+const PRODUCT_PAGES: Record<string, string> = {
+  'cellular-shade': '/urun/cellular-shade',
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -24,28 +30,41 @@ export default async function MarketplacePage() {
         </TabsList>
 
         <TabsContent value="products" className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p) => (
-            <Card key={p.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base">{p.name}</CardTitle>
-                  <Badge variant="secondary">{p.category.replaceAll('_', ' ')}</Badge>
-                </div>
-                <CardDescription>{p.orgName}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {p.description && (
-                  <p className="text-sm text-muted-foreground">{p.description}</p>
-                )}
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-semibold">
-                    ${p.basePrice.toLocaleString('en-US')} <span className="font-normal text-muted-foreground">/ panel</span>
-                  </span>
-                  <span className="text-muted-foreground">{p.leadTimeDays}d lead time</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {products.map((p) => {
+            const href = PRODUCT_PAGES[p.slug]
+            const card = (
+              <Card key={p.id} className={href ? 'transition-colors hover:border-primary' : undefined}>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base">{p.name}</CardTitle>
+                    <Badge variant="secondary">{p.category.replaceAll('_', ' ')}</Badge>
+                  </div>
+                  <CardDescription>{p.orgName}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {p.description && (
+                    <p className="text-sm text-muted-foreground">{p.description}</p>
+                  )}
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-semibold">
+                      ${p.basePrice.toLocaleString('en-US')} <span className="font-normal text-muted-foreground">/ panel</span>
+                    </span>
+                    <span className="text-muted-foreground">{p.leadTimeDays}d lead time</span>
+                  </div>
+                  {href && (
+                    <p className="text-sm font-medium text-primary">Ölçüye özel yapılandır →</p>
+                  )}
+                </CardContent>
+              </Card>
+            )
+            return href ? (
+              <Link key={p.id} href={href} className="block">
+                {card}
+              </Link>
+            ) : (
+              card
+            )
+          })}
         </TabsContent>
 
         <TabsContent value="fabrics" className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

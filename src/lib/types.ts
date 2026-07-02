@@ -37,6 +37,7 @@ export type ProductCategory =
   | 'ZEBRA_BLIND'
   | 'VENETIAN_BLIND'
   | 'ROMAN_SHADE'
+  | 'CELLULAR_SHADE'
   | 'TULLE'
   | 'ACCESSORY'
 
