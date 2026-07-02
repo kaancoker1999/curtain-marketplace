@@ -1,18 +1,33 @@
-// Kategori vitrin görselleri: gerçek fotoğrafı olan kategoriler
-// public/categories/ altındaki fotoğrafı kullanır (Unsplash lisansı — ticari
-// kullanım serbest); fotoğrafı olmayan niş kategoriler stilize oda sahnesi
-// (SVG) ile gösterilir.
+// Kategori vitrin görselleri: public/categories/ altında aşağıdaki adla bir
+// .jpg varsa fotoğraf gösterilir, yoksa stilize oda sahnesi (SVG) çizilir.
+// Fotoğraf değiştirmek/eklemek için dosyayı doğru adla klasöre koymak yeterli:
+//   roller.jpg, cellular.jpg, roman.jpg, curtain.jpg, zebra.jpg,
+//   venetian.jpg, wood.jpg, sheer.jpg, blackout.jpg, tulle.jpg
 
+import { existsSync } from 'fs'
+import path from 'path'
 import { CATEGORY_LABELS } from '@/lib/labels'
 import type { ProductCategory } from '@/lib/types'
 
-const PHOTOS: Partial<Record<ProductCategory, string>> = {
-  ROLLER_BLIND: '/categories/roller.jpg',
-  CURTAIN: '/categories/curtain.jpg',
-  VENETIAN_BLIND: '/categories/venetian.jpg',
-  WOOD_BLIND: '/categories/wood.jpg',
-  SHEER: '/categories/sheer.jpg',
-  BLACKOUT: '/categories/blackout.jpg',
+const PHOTO_FILES: Partial<Record<ProductCategory, string>> = {
+  ROLLER_BLIND: 'roller.jpg',
+  CELLULAR_SHADE: 'cellular.jpg',
+  ROMAN_SHADE: 'roman.jpg',
+  CURTAIN: 'curtain.jpg',
+  ZEBRA_BLIND: 'zebra.jpg',
+  VENETIAN_BLIND: 'venetian.jpg',
+  WOOD_BLIND: 'wood.jpg',
+  SHEER: 'sheer.jpg',
+  BLACKOUT: 'blackout.jpg',
+  TULLE: 'tulle.jpg',
+}
+
+function photoFor(category: ProductCategory): string | null {
+  const file = PHOTO_FILES[category]
+  if (!file) return null
+  return existsSync(path.join(process.cwd(), 'public', 'categories', file))
+    ? `/categories/${file}`
+    : null
 }
 
 const SCENE: Record<string, { wall: string; main: string; accent: string }> = {
@@ -28,7 +43,7 @@ const SCENE: Record<string, { wall: string; main: string; accent: string }> = {
 }
 
 export function CategoryTile({ category }: { category: ProductCategory }) {
-  const photo = PHOTOS[category]
+  const photo = photoFor(category)
   if (photo) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
