@@ -176,6 +176,42 @@ export async function getOrders(): Promise<OrderSummary[]> {
   }
 }
 
+export interface WorkedWithProvider {
+  provider: Provider
+  orderCount: number
+  totalSpend: number
+  lastOrderDate: string
+}
+
+/**
+ * Providers the buyer has actually ordered from, with relationship stats.
+ * (Until auth lands there is no "current organization", so this aggregates
+ * across all orders — in demo mode and live mode alike.)
+ */
+export async function getWorkedWithProviders(): Promise<WorkedWithProvider[]> {
+  const [providers, orders] = await Promise.all([getProviders(), getOrders()])
+  const byName = new Map(providers.map((p) => [p.name, p]))
+  const stats = new Map<string, WorkedWithProvider>()
+  for (const order of orders) {
+    const provider = byName.get(order.sellerName)
+    if (!provider) continue
+    const entry = stats.get(provider.id)
+    if (entry) {
+      entry.orderCount += 1
+      entry.totalSpend += order.total
+      if (order.placedAt > entry.lastOrderDate) entry.lastOrderDate = order.placedAt
+    } else {
+      stats.set(provider.id, {
+        provider,
+        orderCount: 1,
+        totalSpend: order.total,
+        lastOrderDate: order.placedAt,
+      })
+    }
+  }
+  return [...stats.values()].sort((a, b) => b.totalSpend - a.totalSpend)
+}
+
 function demoStats(): PlatformStats {
   const activeOrders = DEMO_ORDERS.filter(
     (o) => !['COMPLETED', 'CANCELLED', 'DELIVERED'].includes(o.status),
