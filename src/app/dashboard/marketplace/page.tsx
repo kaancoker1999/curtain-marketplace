@@ -3,13 +3,15 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getFabrics, getProducts } from '@/lib/data'
+import { formatTRY } from '@/lib/format'
+import { CATEGORY_LABELS } from '@/lib/labels'
 
-// Products with a dedicated configurator page get a click-through.
+export const dynamic = 'force-dynamic'
+
+// Özel konfigüratör sayfası olan ürünler tıklanabilir.
 const PRODUCT_PAGES: Record<string, string> = {
   'cellular-shade': '/urun/cellular-shade',
 }
-
-export const dynamic = 'force-dynamic'
 
 export default async function MarketplacePage() {
   const [products, fabrics] = await Promise.all([getProducts(), getFabrics()])
@@ -17,27 +19,27 @@ export default async function MarketplacePage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Marketplace</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Pazar Yeri</h1>
         <p className="text-sm text-muted-foreground">
-          Finished products and fabrics from your provider network.
+          Sağlayıcı ağınızdan hazır ürünler ve kumaşlar.
         </p>
       </div>
 
       <Tabs defaultValue="products">
         <TabsList>
-          <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
-          <TabsTrigger value="fabrics">Fabrics ({fabrics.length})</TabsTrigger>
+          <TabsTrigger value="products">Ürünler ({products.length})</TabsTrigger>
+          <TabsTrigger value="fabrics">Kumaşlar ({fabrics.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="products" className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => {
             const href = PRODUCT_PAGES[p.slug]
             const card = (
-              <Card key={p.id} className={href ? 'transition-colors hover:border-primary' : undefined}>
+              <Card key={p.id} className={href ? 'h-full transition-colors hover:border-primary' : 'h-full'}>
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="text-base">{p.name}</CardTitle>
-                    <Badge variant="secondary">{p.category.replaceAll('_', ' ')}</Badge>
+                    <Badge variant="secondary">{CATEGORY_LABELS[p.category]}</Badge>
                   </div>
                   <CardDescription>{p.orgName}</CardDescription>
                 </CardHeader>
@@ -47,9 +49,9 @@ export default async function MarketplacePage() {
                   )}
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-semibold">
-                      ${p.basePrice.toLocaleString('en-US')} <span className="font-normal text-muted-foreground">/ panel</span>
+                      {formatTRY(p.basePrice)} <span className="font-normal text-muted-foreground">/ panel</span>
                     </span>
-                    <span className="text-muted-foreground">{p.leadTimeDays}d lead time</span>
+                    <span className="text-muted-foreground">{p.leadTimeDays} gün termin</span>
                   </div>
                   {href && (
                     <p className="text-sm font-medium text-primary">Ölçüye özel yapılandır →</p>
@@ -83,10 +85,10 @@ export default async function MarketplacePage() {
                 {f.composition && <p className="text-muted-foreground">{f.composition}</p>}
                 <div className="flex items-center justify-between">
                   <span className="font-semibold">
-                    ${f.pricePerMeter.toFixed(2)} <span className="font-normal text-muted-foreground">/ m</span>
+                    {formatTRY(f.pricePerMeter)} <span className="font-normal text-muted-foreground">/ m</span>
                   </span>
                   <span className="text-muted-foreground">
-                    {f.stockMeters.toLocaleString('en-US')} m in stock
+                    {f.stockMeters.toLocaleString('tr-TR')} m stokta
                   </span>
                 </div>
               </CardContent>

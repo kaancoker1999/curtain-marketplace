@@ -9,6 +9,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { getOrders, getStats } from '@/lib/data'
+import { formatTRY } from '@/lib/format'
+import { ORDER_STATUS_LABELS } from '@/lib/labels'
 import { orderStatusVariant } from '@/lib/ui'
 
 export const dynamic = 'force-dynamic'
@@ -17,19 +19,19 @@ export default async function DashboardPage() {
   const [stats, orders] = await Promise.all([getStats(), getOrders()])
 
   const cards = [
-    { label: 'Network providers', value: stats.providerCount },
-    { label: 'Active products', value: stats.productCount },
-    { label: 'Open RFQs', value: stats.openRfqCount },
-    { label: 'Active orders', value: stats.activeOrderCount },
-    { label: 'Total GMV', value: `$${stats.gmv.toLocaleString('en-US')}` },
+    { label: 'Ağdaki sağlayıcı', value: stats.providerCount },
+    { label: 'Aktif ürün', value: stats.productCount },
+    { label: 'Açık talep (RFQ)', value: stats.openRfqCount },
+    { label: 'Aktif sipariş', value: stats.activeOrderCount },
+    { label: 'Toplam ciro', value: formatTRY(stats.gmv) },
   ]
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Genel Bakış</h1>
         <p className="text-sm text-muted-foreground">
-          Platform activity across your curtain supply network.
+          Tedarik ağınızdaki platform aktivitesi.
         </p>
       </div>
 
@@ -48,18 +50,18 @@ export default async function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent orders</CardTitle>
+          <CardTitle>Son siparişler</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order</TableHead>
-                <TableHead>Buyer</TableHead>
-                <TableHead>Seller</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead>Placed</TableHead>
+                <TableHead>Sipariş</TableHead>
+                <TableHead>Alıcı</TableHead>
+                <TableHead>Satıcı</TableHead>
+                <TableHead>Durum</TableHead>
+                <TableHead className="text-right">Tutar</TableHead>
+                <TableHead>Tarih</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -70,12 +72,10 @@ export default async function DashboardPage() {
                   <TableCell>{o.sellerName}</TableCell>
                   <TableCell>
                     <Badge variant={orderStatusVariant(o.status)}>
-                      {o.status.replaceAll('_', ' ')}
+                      {ORDER_STATUS_LABELS[o.status]}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    ${o.total.toLocaleString('en-US')}
-                  </TableCell>
+                  <TableCell className="text-right">{formatTRY(o.total)}</TableCell>
                   <TableCell className="text-muted-foreground">{o.placedAt}</TableCell>
                 </TableRow>
               ))}

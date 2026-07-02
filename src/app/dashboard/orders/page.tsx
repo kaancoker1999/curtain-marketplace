@@ -9,6 +9,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { getOrders } from '@/lib/data'
+import { formatTRY } from '@/lib/format'
+import { ORDER_STATUS_LABELS } from '@/lib/labels'
 import { orderStatusVariant } from '@/lib/ui'
 
 export const dynamic = 'force-dynamic'
@@ -19,28 +21,28 @@ export default async function OrdersPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Siparişler</h1>
         <p className="text-sm text-muted-foreground">
-          All orders across products, fabric and services.
+          Ürün, kumaş ve hizmet siparişlerinizin tamamı.
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All orders ({orders.length})</CardTitle>
+          <CardTitle>Tüm siparişler ({orders.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order</TableHead>
-                <TableHead>Buyer</TableHead>
-                <TableHead>Seller</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead>Placed</TableHead>
-                <TableHead>Due</TableHead>
+                <TableHead>Sipariş</TableHead>
+                <TableHead>Alıcı</TableHead>
+                <TableHead>Satıcı</TableHead>
+                <TableHead>Kalem</TableHead>
+                <TableHead>Durum</TableHead>
+                <TableHead className="text-right">Tutar</TableHead>
+                <TableHead>Tarih</TableHead>
+                <TableHead>Termin</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -52,12 +54,10 @@ export default async function OrdersPage() {
                   <TableCell>{o.itemCount}</TableCell>
                   <TableCell>
                     <Badge variant={orderStatusVariant(o.status)}>
-                      {o.status.replaceAll('_', ' ')}
+                      {ORDER_STATUS_LABELS[o.status]}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    ${o.total.toLocaleString('en-US')}
-                  </TableCell>
+                  <TableCell className="text-right">{formatTRY(o.total)}</TableCell>
                   <TableCell className="text-muted-foreground">{o.placedAt}</TableCell>
                   <TableCell className="text-muted-foreground">{o.dueDate ?? '—'}</TableCell>
                 </TableRow>

@@ -12,11 +12,11 @@ import { getStats } from '@/lib/data'
 export const dynamic = 'force-dynamic'
 
 const nav = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/match', label: 'AI Matching', icon: Sparkles },
-  { href: '/dashboard/marketplace', label: 'Marketplace', icon: Package },
-  { href: '/dashboard/network', label: 'Network', icon: Network },
-  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
+  { href: '/dashboard', label: 'Genel Bakış', icon: LayoutDashboard },
+  { href: '/dashboard/match', label: 'AI Eşleştirme', icon: Sparkles },
+  { href: '/dashboard/marketplace', label: 'Pazar Yeri', icon: Package },
+  { href: '/ureticiler', label: 'Üretici Ağı', icon: Network },
+  { href: '/dashboard/orders', label: 'Siparişler', icon: ShoppingCart },
 ]
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -42,7 +42,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="mt-auto px-2">
           {stats.demoMode && (
             <Badge variant="outline" className="w-full justify-center">
-              Demo mode — no database
+              Demo mod — veritabanı yok
             </Badge>
           )}
         </div>

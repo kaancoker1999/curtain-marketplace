@@ -257,19 +257,19 @@ export function matchProviders(providers: Provider[], req: MatchRequest): MatchS
 
 function deterministicExplanation(s: MatchScore, req: MatchRequest): string {
   const parts: string[] = []
-  if (s.scores.price >= 0.9) parts.push('best-in-class price')
-  else if (s.scores.price >= 0.7) parts.push('competitive price')
-  if (s.scores.delivery >= 0.9) parts.push(`comfortable ${s.estimatedLeadTimeDays}-day lead time`)
-  else if (s.scores.delivery <= 0.1) parts.push('would likely miss the deadline')
-  if (s.scores.capacity >= 0.9) parts.push('ample free capacity')
-  else if (s.scores.capacity <= 0.2) parts.push('tight production capacity')
-  if (s.scores.waste >= 0.9) parts.push(`efficient fabric utilization for ${req.widthCm}cm panels`)
-  if (s.scores.logistics >= 0.8) parts.push(`close to ${req.deliveryCity} (${s.distanceKm} km)`)
-  else if (s.scores.logistics <= 0.2) parts.push(`far from delivery location (${s.distanceKm} km)`)
-  if (s.scores.rating >= 0.85) parts.push(`strong rating (${s.provider.ratingAvg}/5)`)
+  if (s.scores.price >= 0.9) parts.push('en iyi fiyat')
+  else if (s.scores.price >= 0.7) parts.push('rekabetçi fiyat')
+  if (s.scores.delivery >= 0.9) parts.push(`rahat ${s.estimatedLeadTimeDays} günlük termin`)
+  else if (s.scores.delivery <= 0.1) parts.push('termini kaçırma riski yüksek')
+  if (s.scores.capacity >= 0.9) parts.push('bol boş kapasite')
+  else if (s.scores.capacity <= 0.2) parts.push('sıkışık üretim kapasitesi')
+  if (s.scores.waste >= 0.9) parts.push(`${req.widthCm} cm paneller için verimli kumaş kullanımı`)
+  if (s.scores.logistics >= 0.8) parts.push(`${req.deliveryCity} şehrine yakın (${s.distanceKm} km)`)
+  else if (s.scores.logistics <= 0.2) parts.push(`teslimat noktasına uzak (${s.distanceKm} km)`)
+  if (s.scores.rating >= 0.85) parts.push(`güçlü puan (${s.provider.ratingAvg}/5)`)
   return parts.length
     ? `${s.provider.name}: ${parts.join(', ')}.`
-    : `${s.provider.name}: balanced across all criteria.`
+    : `${s.provider.name}: tüm kriterlerde dengeli.`
 }
 
 /**

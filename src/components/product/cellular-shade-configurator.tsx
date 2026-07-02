@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { formatTRY } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
@@ -47,13 +48,13 @@ const MOUNTS = [
 const LIGHT_CONTROLS = [
   { id: 'sheer', label: 'Tül Geçirgen', desc: 'Işığı yumuşatır, manzarayı korur.', price: 0 },
   { id: 'light-filtering', label: 'Işık Süzen', desc: 'Güneşi süzer, gündüz mahremiyeti sağlar.', price: 0 },
-  { id: 'blackout', label: 'Karartma', desc: 'Işığı büyük ölçüde engeller; yatak odası için ideal.', price: 15 },
+  { id: 'blackout', label: 'Karartma', desc: 'Işığı büyük ölçüde engeller; yatak odası için ideal.', price: 600 },
 ] as const
 
 const CELL_TYPES = [
   { id: 'single', label: 'Tek Hücre', desc: 'İnce profil, standart yalıtım.', price: 0 },
-  { id: 'double', label: 'Çift Hücre', desc: 'Güçlü yalıtım, üstün ses sönümleme.', price: 24 },
-  { id: 'triple', label: 'Üç Hücre', desc: 'Sert iklimler için maksimum enerji verimliliği.', price: 42 },
+  { id: 'double', label: 'Çift Hücre', desc: 'Güçlü yalıtım, üstün ses sönümleme.', price: 950 },
+  { id: 'triple', label: 'Üç Hücre', desc: 'Sert iklimler için maksimum enerji verimliliği.', price: 1700 },
 ] as const
 
 interface ColorOption {
@@ -118,33 +119,33 @@ const COLOR_GROUPS: ColorGroup[] = [
     id: 'designer-prints',
     label: '1,9 cm (¾") Hücre · Tasarım Desenleri',
     colors: [
-      { id: 'sand-print', label: 'Kum', hex: '#D6C8B0', price: 9 },
-      { id: 'mist-print', label: 'Sis', hex: '#BCBCC2', price: 9 },
-      { id: 'sky-print', label: 'Gök', hex: '#9FB8CE', price: 9 },
-      { id: 'cinder-print', label: 'Kül', hex: '#A89E94', price: 9 },
-      { id: 'storm-print', label: 'Fırtına', hex: '#8A8F98', price: 9 },
+      { id: 'sand-print', label: 'Kum', hex: '#D6C8B0', price: 350 },
+      { id: 'mist-print', label: 'Sis', hex: '#BCBCC2', price: 350 },
+      { id: 'sky-print', label: 'Gök', hex: '#9FB8CE', price: 350 },
+      { id: 'cinder-print', label: 'Kül', hex: '#A89E94', price: 350 },
+      { id: 'storm-print', label: 'Fırtına', hex: '#8A8F98', price: 350 },
     ],
   },
 ]
 
 const LIFT_SYSTEMS = [
   { id: 'cordless', label: 'İpsiz (Cordless)', desc: 'Elle itip çekerek kullanılır; çocuk güvenliği için en iyi seçenek.', price: 0 },
-  { id: 'cord-loop', label: 'Sonsuz Zincir', desc: 'Zincirle kontrol; büyük ve yüksek pencereler için pratik.', price: 22.5 },
-  { id: 'motorized', label: 'Motorlu', desc: 'Uzaktan kumanda ve akıllı ev entegrasyonu.', price: 187.5 },
+  { id: 'cord-loop', label: 'Sonsuz Zincir', desc: 'Zincirle kontrol; büyük ve yüksek pencereler için pratik.', price: 900 },
+  { id: 'motorized', label: 'Motorlu', desc: 'Uzaktan kumanda ve akıllı ev entegrasyonu.', price: 7500 },
 ] as const
 
 const TDBU_OPTIONS = [
   { id: 'none', label: 'Standart', desc: 'Perde yalnızca alttan yukarı toplanır.', price: 0 },
-  { id: 'tdbu', label: 'Üstten Aç / Alttan Kapa (TDBU)', desc: 'Üstten de açılır; mahremiyeti korurken tepeden ışık alırsınız.', price: 51.75 },
+  { id: 'tdbu', label: 'Üstten Aç / Alttan Kapa (TDBU)', desc: 'Üstten de açılır; mahremiyeti korurken tepeden ışık alırsınız.', price: 2050 },
 ] as const
 
 // ---------------------------------------------------------------------------
 // Pricing
 // ---------------------------------------------------------------------------
 
-const BASE_PRICE = 89.9
-const BASE_AREA_M2 = 0.56 // base price covers up to ~60×93 cm
-const AREA_RATE_PER_M2 = 68
+const BASE_PRICE = 3600
+const BASE_AREA_M2 = 0.56 // baz fiyat ~60×93 cm'e kadar olan ölçüyü kapsar
+const AREA_RATE_PER_M2 = 2700
 
 function computePrice(state: ConfigState) {
   const areaM2 = (state.widthCm / 100) * (state.heightCm / 100)
@@ -270,7 +271,7 @@ export function CellularShadeConfigurator() {
           <div className="flex w-full items-center justify-between border-t pt-4">
             <div>
               <div className="text-sm text-muted-foreground">Hücreli Perde</div>
-              <div className="text-2xl font-semibold">${price.total.toLocaleString('en-US')}</div>
+              <div className="text-2xl font-semibold">{formatTRY(price.total)}</div>
             </div>
             <div className="text-right text-xs text-muted-foreground">
               <div>{state.widthCm} × {state.heightCm} cm · {MOUNTS.find((m) => m.id === state.mount)?.label}</div>
@@ -379,7 +380,7 @@ export function CellularShadeConfigurator() {
               >
                 <div className="text-sm font-medium">{l.label}</div>
                 <p className="mt-1 text-xs text-muted-foreground">{l.desc}</p>
-                <p className="mt-2 text-xs font-medium">{l.price ? `+$${l.price}` : 'Ücretsiz'}</p>
+                <p className="mt-2 text-xs font-medium">{l.price ? `+${formatTRY(l.price)}` : 'Ücretsiz'}</p>
               </button>
             ))}
           </div>
@@ -399,7 +400,7 @@ export function CellularShadeConfigurator() {
               >
                 <div className="text-sm font-medium">{c.label}</div>
                 <p className="mt-1 text-xs text-muted-foreground">{c.desc}</p>
-                <p className="mt-2 text-xs font-medium">{c.price ? `+$${c.price}` : 'Ücretsiz'}</p>
+                <p className="mt-2 text-xs font-medium">{c.price ? `+${formatTRY(c.price)}` : 'Ücretsiz'}</p>
               </button>
             ))}
           </div>
@@ -417,7 +418,7 @@ export function CellularShadeConfigurator() {
                     <button
                       key={color.id}
                       type="button"
-                      title={color.label + (color.price ? ` (+$${color.price})` : '')}
+                      title={color.label + (color.price ? ` (+${formatTRY(color.price)})` : '')}
                       onClick={() => patch({ color })}
                       className={cn(
                         'group flex flex-col items-center gap-1 rounded-md p-1 transition-colors hover:bg-accent',
@@ -463,7 +464,7 @@ export function CellularShadeConfigurator() {
               >
                 <div className="text-sm font-medium">{l.label}</div>
                 <p className="mt-1 text-xs text-muted-foreground">{l.desc}</p>
-                <p className="mt-2 text-xs font-medium">{l.price ? `+$${l.price.toFixed(2)}` : 'Ücretsiz'}</p>
+                <p className="mt-2 text-xs font-medium">{l.price ? `+${formatTRY(l.price)}` : 'Ücretsiz'}</p>
               </button>
             ))}
           </div>
@@ -480,7 +481,7 @@ export function CellularShadeConfigurator() {
               >
                 <div className="text-sm font-medium">{t.label}</div>
                 <p className="mt-1 text-xs text-muted-foreground">{t.desc}</p>
-                <p className="mt-2 text-xs font-medium">{t.price ? `+$${t.price.toFixed(2)}` : 'Ücretsiz'}</p>
+                <p className="mt-2 text-xs font-medium">{t.price ? `+${formatTRY(t.price)}` : 'Ücretsiz'}</p>
               </button>
             ))}
           </div>
@@ -492,20 +493,20 @@ export function CellularShadeConfigurator() {
               <CardTitle className="text-base">Teklifiniz</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <QuoteRow label="Baz fiyat" sub="Ölçü ve seçenekler öncesi başlangıç" value={`$${BASE_PRICE.toFixed(2)}`} />
+              <QuoteRow label="Baz fiyat" sub="Ölçü ve seçenekler öncesi başlangıç" value={formatTRY(BASE_PRICE)} />
               <QuoteRow
                 label="Ölçü farkı"
                 sub={`${state.widthCm} × ${state.heightCm} cm`}
-                value={price.sizeAdj ? `+$${price.sizeAdj.toFixed(2)}` : 'Dahil'}
+                value={price.sizeAdj ? `+${formatTRY(price.sizeAdj)}` : 'Dahil'}
               />
-              <QuoteRow label="Işık kontrolü" sub={LIGHT_CONTROLS.find((l) => l.id === state.lightControl)!.label} value={price.light ? `+$${price.light.toFixed(2)}` : 'Ücretsiz'} />
-              <QuoteRow label="Hücre tipi" sub={CELL_TYPES.find((c) => c.id === state.cellType)!.label} value={price.cell ? `+$${price.cell.toFixed(2)}` : 'Ücretsiz'} />
-              <QuoteRow label="Renk" sub={state.color?.label ?? 'Seçilmedi'} value={price.color ? `+$${price.color.toFixed(2)}` : 'Ücretsiz'} />
-              <QuoteRow label="Kontrol" sub={LIFT_SYSTEMS.find((l) => l.id === state.lift)!.label} value={price.lift ? `+$${price.lift.toFixed(2)}` : 'Ücretsiz'} />
-              <QuoteRow label="TDBU" sub={TDBU_OPTIONS.find((t) => t.id === state.tdbu)!.label} value={price.tdbu ? `+$${price.tdbu.toFixed(2)}` : 'Ücretsiz'} />
+              <QuoteRow label="Işık kontrolü" sub={LIGHT_CONTROLS.find((l) => l.id === state.lightControl)!.label} value={price.light ? `+${formatTRY(price.light)}` : 'Ücretsiz'} />
+              <QuoteRow label="Hücre tipi" sub={CELL_TYPES.find((c) => c.id === state.cellType)!.label} value={price.cell ? `+${formatTRY(price.cell)}` : 'Ücretsiz'} />
+              <QuoteRow label="Renk" sub={state.color?.label ?? 'Seçilmedi'} value={price.color ? `+${formatTRY(price.color)}` : 'Ücretsiz'} />
+              <QuoteRow label="Kontrol" sub={LIFT_SYSTEMS.find((l) => l.id === state.lift)!.label} value={price.lift ? `+${formatTRY(price.lift)}` : 'Ücretsiz'} />
+              <QuoteRow label="TDBU" sub={TDBU_OPTIONS.find((t) => t.id === state.tdbu)!.label} value={price.tdbu ? `+${formatTRY(price.tdbu)}` : 'Ücretsiz'} />
               <div className="flex items-center justify-between border-t pt-3">
                 <span className="font-medium">Tahmini Toplam</span>
-                <span className="text-2xl font-semibold">${price.total.toLocaleString('en-US')}</span>
+                <span className="text-2xl font-semibold">{formatTRY(price.total)}</span>
               </div>
 
               {!complete && (

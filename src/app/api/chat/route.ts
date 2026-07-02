@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getAiProvider } from '@/lib/ai'
 import { getProviders } from '@/lib/data'
+import { formatTRY } from '@/lib/format'
 import { CITY_COORDS } from '@/lib/demo-data'
 import { matchProviders, type MatchRequest } from '@/lib/matching'
 import type { ServiceType } from '@/lib/types'
@@ -78,7 +79,7 @@ function parseIntent(text: string): ParsedIntent {
   const weeks = lower.match(/(\d+)\s*hafta/)
   if (!days && weeks) intent.neededInDays = parseInt(weeks[1], 10) * 7
 
-  const budget = lower.match(/(\d[\d.]*)\s*(\$|dolar|usd)/)
+  const budget = lower.match(/(\d[\d.]*)\s*(₺|tl|lira|\$|dolar|usd)/)
   if (budget) intent.budgetMax = parseFloat(budget[1].replaceAll('.', ''))
 
   for (const city of Object.keys(CITY_COORDS)) {
@@ -156,7 +157,7 @@ export async function POST(request: Request) {
     const reply =
       `${capitalizeTr(intent.city)} için ${intent.serviceLabel} talebinizi ${results.length} sağlayıcıyla eşleştirdim` +
       (assumptions.length ? ` (${assumptions.join(', ')})` : '') +
-      `. En iyi eşleşme **${top.provider.name}** — tahmini $${top.estimatedPrice.toLocaleString('en-US')}, ` +
+      `. En iyi eşleşme **${top.provider.name}** — tahmini ${formatTRY(top.estimatedPrice)}, ` +
       `${top.estimatedLeadTimeDays} gün teslim, ${top.distanceKm} km mesafe. Detaylar aşağıda:`
 
     return NextResponse.json({

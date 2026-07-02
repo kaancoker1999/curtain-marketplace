@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { formatTRY } from '@/lib/format'
 
 interface MatchResultRow {
   rank: number
@@ -36,22 +37,22 @@ interface MatchResultRow {
 }
 
 const SERVICE_TYPES = [
-  { value: 'SEWING', label: 'Sewing' },
-  { value: 'INSTALLATION', label: 'Installation' },
-  { value: 'MEASUREMENT', label: 'Measurement' },
-  { value: 'DESIGN', label: 'Design' },
-  { value: 'PLEATING', label: 'Pleating' },
-  { value: 'EMBROIDERY', label: 'Embroidery' },
-  { value: 'MOTORIZATION', label: 'Motorization' },
+  { value: 'SEWING', label: 'Dikim' },
+  { value: 'INSTALLATION', label: 'Montaj' },
+  { value: 'MEASUREMENT', label: 'Ölçüm' },
+  { value: 'DESIGN', label: 'Tasarım' },
+  { value: 'PLEATING', label: 'Pile' },
+  { value: 'EMBROIDERY', label: 'Nakış' },
+  { value: 'MOTORIZATION', label: 'Motorlu Sistem' },
 ]
 
 const SCORE_LABELS: [keyof MatchResultRow['scores'], string][] = [
-  ['price', 'Price'],
-  ['delivery', 'Delivery'],
-  ['capacity', 'Capacity'],
-  ['waste', 'Waste opt.'],
-  ['logistics', 'Logistics'],
-  ['rating', 'Rating'],
+  ['price', 'Fiyat'],
+  ['delivery', 'Termin'],
+  ['capacity', 'Kapasite'],
+  ['waste', 'Fire opt.'],
+  ['logistics', 'Lojistik'],
+  ['rating', 'Puan'],
 ]
 
 export default function MatchPage() {
@@ -60,7 +61,7 @@ export default function MatchPage() {
     widthCm: '160',
     heightCm: '260',
     quantity: '60',
-    deliveryCity: 'Istanbul',
+    deliveryCity: 'İstanbul',
     neededInDays: '21',
     budgetMax: '',
   })
@@ -93,13 +94,13 @@ export default function MatchPage() {
       })
       if (!res.ok) {
         const body = await res.json().catch(() => null)
-        throw new Error(body?.error ?? `Request failed (${res.status})`)
+        throw new Error(body?.error ?? `İstek başarısız (${res.status})`)
       }
       const body = await res.json()
       setResults(body.data.results)
       setAiSummary(body.data.aiSummary)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Match request failed')
+      setError(err instanceof Error ? err.message : 'Eşleştirme isteği başarısız oldu')
       setResults(null)
     } finally {
       setLoading(false)
@@ -110,23 +111,23 @@ export default function MatchPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-          <Sparkles className="size-5 text-primary" /> AI Matching
+          <Sparkles className="size-5 text-primary" /> AI Eşleştirme
         </h1>
         <p className="text-sm text-muted-foreground">
-          Describe what you need — the engine ranks providers by price, delivery, capacity,
-          fabric-waste efficiency, logistics and rating.
+          İhtiyacınızı tanımlayın — motor; fiyat, termin, kapasite, kumaş fire verimliliği,
+          lojistik ve puana göre sağlayıcıları sıralar.
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Request</CardTitle>
-          <CardDescription>Example: 60 made-to-measure blackout panels for a hotel project.</CardDescription>
+          <CardTitle>Talep</CardTitle>
+          <CardDescription>Örnek: otel projesi için 60 adet ölçüye özel karartma panel.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={runMatch} className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="col-span-2 space-y-2">
-              <Label>Service</Label>
+              <Label>Hizmet</Label>
               <Select
                 value={form.serviceType}
                 onValueChange={(value) => value && set('serviceType')(value)}
@@ -144,39 +145,39 @@ export default function MatchPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="width">Width (cm)</Label>
+              <Label htmlFor="width">Genişlik (cm)</Label>
               <Input id="width" type="number" min={1} required value={form.widthCm}
                 onChange={(e) => set('widthCm')(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="height">Height (cm)</Label>
+              <Label htmlFor="height">Yükseklik (cm)</Label>
               <Input id="height" type="number" min={1} required value={form.heightCm}
                 onChange={(e) => set('heightCm')(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="qty">Quantity</Label>
+              <Label htmlFor="qty">Adet</Label>
               <Input id="qty" type="number" min={1} required value={form.quantity}
                 onChange={(e) => set('quantity')(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">Delivery city</Label>
+              <Label htmlFor="city">Teslim şehri</Label>
               <Input id="city" required value={form.deliveryCity}
                 onChange={(e) => set('deliveryCity')(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="days">Needed in (days)</Label>
+              <Label htmlFor="days">Kaç günde lazım?</Label>
               <Input id="days" type="number" min={1} value={form.neededInDays}
                 onChange={(e) => set('neededInDays')(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="budget">Budget max ($)</Label>
-              <Input id="budget" type="number" min={1} placeholder="optional" value={form.budgetMax}
+              <Label htmlFor="budget">Maks. bütçe (₺)</Label>
+              <Input id="budget" type="number" min={1} placeholder="opsiyonel" value={form.budgetMax}
                 onChange={(e) => set('budgetMax')(e.target.value)} />
             </div>
             <div className="col-span-2 flex items-end md:col-span-4">
               <Button type="submit" disabled={loading}>
                 {loading && <Loader2 className="mr-1 size-4 animate-spin" />}
-                Find best providers
+                En iyi sağlayıcıları bul
               </Button>
             </div>
           </form>
@@ -188,7 +189,7 @@ export default function MatchPage() {
         <Card className="border-primary/40">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Sparkles className="size-4 text-primary" /> AI recommendation
+              <Sparkles className="size-4 text-primary" /> AI önerisi
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">{aiSummary}</CardContent>
@@ -199,7 +200,7 @@ export default function MatchPage() {
         <div className="space-y-4">
           {results.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              No providers offer this service yet.
+              Bu hizmeti sunan bir sağlayıcı henüz yok.
             </p>
           )}
           {results.map((r) => (
@@ -212,18 +213,16 @@ export default function MatchPage() {
                     </span>
                     {r.provider.name}
                     {r.provider.verified && <BadgeCheck className="size-4 text-primary" />}
-                    {r.rank === 1 && <Badge>Best match</Badge>}
+                    {r.rank === 1 && <Badge>En iyi eşleşme</Badge>}
                   </CardTitle>
                   <div className="text-sm text-muted-foreground">
-                    Score <span className="font-semibold text-foreground">{Math.round(r.totalScore * 100)}</span>/100
+                    Skor <span className="font-semibold text-foreground">{Math.round(r.totalScore * 100)}</span>/100
                   </div>
                 </div>
                 <CardDescription>
-                  {r.provider.city}, {r.provider.country} · {r.distanceKm} km away · est.{' '}
-                  <span className="font-medium text-foreground">
-                    ${r.estimatedPrice.toLocaleString('en-US')}
-                  </span>{' '}
-                  · {r.estimatedLeadTimeDays}d lead time
+                  {r.provider.city}, {r.provider.country} · {r.distanceKm} km ·{' '}
+                  <span className="font-medium text-foreground">{formatTRY(r.estimatedPrice)}</span>{' '}
+                  · {r.estimatedLeadTimeDays} gün termin
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">

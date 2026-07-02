@@ -1,7 +1,9 @@
+import Link from 'next/link'
 import { BadgeCheck, MapPin, Star } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getWorkedWithProviders } from '@/lib/data'
+import { formatTRY } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,42 +29,42 @@ export default async function CalistigimUreticilerPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {workedWith.map(({ provider, orderCount, totalSpend, lastOrderDate }) => (
-              <Card key={provider.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="flex items-center gap-1.5 text-base">
-                      {provider.name}
-                      {provider.verified && <BadgeCheck className="size-4 text-primary" />}
-                    </CardTitle>
-                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Star className="size-3.5 fill-amber-400 text-amber-400" />
-                      {provider.ratingAvg.toFixed(1)}
-                    </span>
-                  </div>
-                  <CardDescription className="flex items-center gap-1">
-                    <MapPin className="size-3.5" />
-                    {provider.city}, {provider.country}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="rounded-lg bg-muted px-2 py-3">
-                      <div className="text-lg font-semibold">{orderCount}</div>
-                      <div className="text-xs text-muted-foreground">Sipariş</div>
+              <Link key={provider.id} href={`/ureticiler/${provider.slug}`} className="block">
+                <Card className="h-full transition-colors hover:border-primary">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="flex items-center gap-1.5 text-base">
+                        {provider.name}
+                        {provider.verified && <BadgeCheck className="size-4 text-primary" />}
+                      </CardTitle>
+                      <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                        {provider.ratingAvg.toFixed(1)}
+                      </span>
                     </div>
-                    <div className="rounded-lg bg-muted px-2 py-3">
-                      <div className="text-lg font-semibold">
-                        ${totalSpend.toLocaleString('en-US')}
+                    <CardDescription className="flex items-center gap-1">
+                      <MapPin className="size-3.5" />
+                      {provider.city}, {provider.country}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-muted px-2 py-3">
+                        <div className="text-lg font-semibold">{orderCount}</div>
+                        <div className="text-xs text-muted-foreground">Sipariş</div>
                       </div>
-                      <div className="text-xs text-muted-foreground">Toplam hacim</div>
+                      <div className="rounded-lg bg-muted px-2 py-3">
+                        <div className="text-lg font-semibold">{formatTRY(totalSpend)}</div>
+                        <div className="text-xs text-muted-foreground">Toplam hacim</div>
+                      </div>
+                      <div className="rounded-lg bg-muted px-2 py-3">
+                        <div className="text-lg font-semibold">{lastOrderDate}</div>
+                        <div className="text-xs text-muted-foreground">Son sipariş</div>
+                      </div>
                     </div>
-                    <div className="rounded-lg bg-muted px-2 py-3">
-                      <div className="text-lg font-semibold">{lastOrderDate}</div>
-                      <div className="text-xs text-muted-foreground">Son sipariş</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

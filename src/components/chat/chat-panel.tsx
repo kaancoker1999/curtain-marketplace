@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { formatTRY } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 interface ChatMatch {
@@ -126,7 +127,7 @@ export function ChatPanel() {
                           <span>{match.provider.city}</span>
                           <span>·</span>
                           <span className="font-medium text-foreground">
-                            ${match.estimatedPrice.toLocaleString('en-US')}
+                            {formatTRY(match.estimatedPrice)}
                           </span>
                           <span>·</span>
                           <span>{match.estimatedLeadTimeDays} gün teslim</span>
