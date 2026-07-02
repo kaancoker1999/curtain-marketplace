@@ -19,17 +19,6 @@ import { cn } from '@/lib/utils'
 // Option data
 // ---------------------------------------------------------------------------
 
-const ROOMS = [
-  'Oturma Odası',
-  'Bebek Odası',
-  'Mutfak',
-  'Yemek Odası',
-  'Yatak Odası',
-  'Banyo',
-  'Çalışma Odası',
-  'Diğer',
-]
-
 const MOUNTS = [
   {
     id: 'inside',
@@ -239,7 +228,7 @@ function Step({ no, title, children }: { no: string; title: string; children: Re
 
 export function CellularShadeConfigurator() {
   const [state, setState] = useState<ConfigState>({
-    room: 'Oturma Odası',
+    room: '',
     mount: 'inside',
     widthCm: 90,
     heightCm: 120,
@@ -289,22 +278,14 @@ export function CellularShadeConfigurator() {
       {/* Right: wizard */}
       <div className="space-y-10">
         <Step no="01" title="Oda">
-          <div className="grid grid-cols-4 gap-2">
-            {ROOMS.map((room) => (
-              <button
-                key={room}
-                type="button"
-                onClick={() => patch({ room })}
-                className={cn(
-                  'rounded-lg border px-2 py-3 text-xs font-medium transition-colors',
-                  state.room === room
-                    ? 'border-primary bg-primary/5 text-foreground'
-                    : 'text-muted-foreground hover:bg-accent',
-                )}
-              >
-                {room}
-              </button>
-            ))}
+          <div className="space-y-2">
+            <Label htmlFor="cfg-room">Oda / pencere adı</Label>
+            <Input
+              id="cfg-room"
+              value={state.room}
+              placeholder="örn. Yatak Odası, Salon Sol Pencere…"
+              onChange={(e) => patch({ room: e.target.value })}
+            />
           </div>
           <p className="text-xs text-muted-foreground">
             Sepette pencereleri ayırt edebilmeniz için bu pencereye ad verir.
@@ -450,7 +431,7 @@ export function CellularShadeConfigurator() {
           </div>
         </Step>
 
-        <Step no="07" title="Kaldırma Sistemi">
+        <Step no="07" title="Mekanizma Sistemi">
           <div className="grid grid-cols-3 gap-3">
             {LIFT_SYSTEMS.map((l) => (
               <button
@@ -468,6 +449,9 @@ export function CellularShadeConfigurator() {
               </button>
             ))}
           </div>
+        </Step>
+
+        <Step no="08" title="Açılım Tipi">
           <div className="grid grid-cols-2 gap-3">
             {TDBU_OPTIONS.map((t) => (
               <button
@@ -487,7 +471,7 @@ export function CellularShadeConfigurator() {
           </div>
         </Step>
 
-        <Step no="08" title="Özet & Fiyat">
+        <Step no="09" title="Özet">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Teklifiniz</CardTitle>
