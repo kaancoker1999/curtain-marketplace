@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { BadgeCheck, MapPin, Star, TrendingUp, Trophy } from 'lucide-react'
+import { CategoryTile } from '@/components/category-tile'
 import { SiteHeader } from '@/components/site-header'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -65,56 +66,57 @@ export default async function UreticilerPage({
           </p>
         </div>
 
-        {/* 1 — Kategoriler */}
+        {/* 1 — Kategoriler (görselli vitrin) */}
         <section className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/ureticiler"
-              className={cn(
-                'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
-                !selected
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-              )}
-            >
-              Tümü
-            </Link>
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-lg font-semibold tracking-tight">Kategoriler</h2>
+            {selected && (
+              <Link href="/ureticiler" className="text-sm font-medium text-primary hover:underline">
+                Filtreyi temizle — tümünü göster
+              </Link>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {BROWSE_CATEGORIES.map((category) => {
               const count = providersByCategory.get(category)?.size ?? 0
               const active = selected === category
-              if (count === 0) {
-                return (
-                  <span
-                    key={category}
-                    className="flex cursor-not-allowed items-center gap-1.5 rounded-full border border-dashed px-4 py-2 text-sm text-muted-foreground/60"
-                    title="Bu kategoride henüz üretici yok"
-                  >
-                    {CATEGORY_LABELS[category]}
-                    <span className="text-[10px] uppercase">yakında</span>
-                  </span>
-                )
-              }
-              return (
-                <Link
-                  key={category}
-                  href={`/ureticiler?kategori=${category}`}
+              const tile = (
+                <div
                   className={cn(
-                    'flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors',
-                    active
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                    'overflow-hidden rounded-xl border transition-all',
+                    active && 'ring-2 ring-primary ring-offset-2',
+                    count > 0 ? 'hover:border-primary hover:shadow-md' : 'opacity-55 grayscale',
                   )}
                 >
-                  {CATEGORY_LABELS[category]}
-                  <span
-                    className={cn(
-                      'rounded-full px-1.5 text-xs',
-                      active ? 'bg-primary-foreground/20' : 'bg-muted',
+                  <div className="aspect-[3/2]">
+                    <CategoryTile category={category} />
+                  </div>
+                  <div className="flex items-center justify-between border-t bg-background px-3 py-2.5">
+                    <span className="truncate text-sm font-medium">{CATEGORY_LABELS[category]}</span>
+                    {count > 0 ? (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                        {count} üretici
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        yakında
+                      </span>
                     )}
-                  >
-                    {count}
-                  </span>
+                  </div>
+                </div>
+              )
+              return count > 0 ? (
+                <Link
+                  key={category}
+                  href={active ? '/ureticiler' : `/ureticiler?kategori=${category}`}
+                  className="block"
+                >
+                  {tile}
                 </Link>
+              ) : (
+                <div key={category} title="Bu kategoride henüz üretici yok">
+                  {tile}
+                </div>
               )
             })}
           </div>
