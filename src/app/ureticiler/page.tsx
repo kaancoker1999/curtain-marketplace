@@ -166,7 +166,7 @@ export default async function UreticilerPage({
           {visibleProviders.length === 0 ? (
             <p className="text-sm text-muted-foreground">Bu kategoride henüz üretici yok.</p>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4">
               {visibleProviders.map((p) => (
                 <Link key={p.id} href={`/ureticiler/${p.slug}`} className="block">
                   <Card className="h-full transition-colors hover:border-primary">
