@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getProducts, getProviders } from '@/lib/data'
 import { formatSalesTier } from '@/lib/format'
-import { CATEGORY_LABELS, ROLE_LABELS } from '@/lib/labels'
+import { CATEGORY_LABELS, ROLE_LABELS, SERVICE_LABELS } from '@/lib/labels'
 import { cn } from '@/lib/utils'
 import type { ProductCategory } from '@/lib/types'
 
@@ -54,6 +54,15 @@ export default async function UreticilerPage({
   const topPerformers = [...providers]
     .sort((a, b) => b.ratingAvg - a.ratingAvg || (b.salesCount ?? 0) - (a.salesCount ?? 0))
     .slice(0, 4)
+
+  // Üreticinin sunduğu ürün kategorileri + hizmetler (kart altı etiketleri)
+  function offeringsOf(providerId: string, serviceTypes: { type: string }[]): string[] {
+    const productLabels = products
+      .filter((p) => p.orgId === providerId)
+      .map((p) => CATEGORY_LABELS[p.category])
+    const serviceLabels = serviceTypes.map((s) => SERVICE_LABELS[s.type as keyof typeof SERVICE_LABELS])
+    return [...new Set([...productLabels, ...serviceLabels])]
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,6 +160,26 @@ export default async function UreticilerPage({
                         {formatSalesTier(p.salesCount)} site içi satış
                       </div>
                     )}
+                    {(() => {
+                      const offerings = offeringsOf(p.id, p.services)
+                      if (offerings.length === 0) return null
+                      const shown = offerings.slice(0, 3)
+                      const kalan = offerings.length - shown.length
+                      return (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {shown.map((label) => (
+                            <Badge key={label} variant="secondary" className="text-[10px]">
+                              {label}
+                            </Badge>
+                          ))}
+                          {kalan > 0 && (
+                            <Badge variant="outline" className="text-[10px]">
+                              +{kalan}
+                            </Badge>
+                          )}
+                        </div>
+                      )
+                    })()}
                   </CardContent>
                 </Card>
               </Link>
