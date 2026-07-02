@@ -1,0 +1,205 @@
+// Realistic demo dataset. Used two ways:
+//  1. As the in-memory fallback when no live PostgreSQL is reachable ("demo mode").
+//  2. As the source for prisma/seed.ts, so demo mode and a seeded DB match.
+
+import type {
+  FabricSummary,
+  OrderSummary,
+  ProductSummary,
+  Provider,
+} from './types'
+
+export const DEMO_PROVIDERS: Provider[] = [
+  {
+    id: 'org-atlas',
+    name: 'Atlas Curtain Manufacturing',
+    slug: 'atlas-curtain-manufacturing',
+    description: 'Full-service curtain manufacturer: cutting, sewing, pleating and finishing at scale.',
+    roles: ['MANUFACTURER', 'SEWING_WORKSHOP'],
+    city: 'Bursa',
+    country: 'Türkiye',
+    lat: 40.1885,
+    lng: 29.061,
+    verified: true,
+    ratingAvg: 4.7,
+    ratingCount: 128,
+    services: [
+      { type: 'SEWING', title: 'Industrial curtain sewing', pricingModel: 'PER_PANEL', basePrice: 14, leadTimeDays: 5 },
+      { type: 'PLEATING', title: 'Pinch & wave pleating', pricingModel: 'PER_METER', basePrice: 3.5, leadTimeDays: 3 },
+    ],
+    capacity: { capacityUnits: 1200, bookedUnits: 780, unit: 'panels' },
+    fabricRollWidthsCm: [280, 300, 320],
+    pricingRules: [
+      { type: 'VOLUME_DISCOUNT', name: '50+ panels', params: { minQty: 50, discountPct: 8 } },
+      { type: 'RUSH_FEE', name: 'Under 4 days', params: { maxLeadDays: 4, feePct: 15 } },
+    ],
+  },
+  {
+    id: 'org-denizli',
+    name: 'Denizli Textile Works',
+    slug: 'denizli-textile-works',
+    description: 'Third-generation textile producer specialized in sheers, tulle and blackout lines.',
+    roles: ['MANUFACTURER', 'FABRIC_SUPPLIER'],
+    city: 'Denizli',
+    country: 'Türkiye',
+    lat: 37.7765,
+    lng: 29.0864,
+    verified: true,
+    ratingAvg: 4.5,
+    ratingCount: 86,
+    services: [
+      { type: 'SEWING', title: 'Sheer & tulle confection', pricingModel: 'PER_PANEL', basePrice: 11, leadTimeDays: 7 },
+    ],
+    capacity: { capacityUnits: 900, bookedUnits: 310, unit: 'panels' },
+    fabricRollWidthsCm: [300],
+    pricingRules: [
+      { type: 'VOLUME_DISCOUNT', name: '100+ panels', params: { minQty: 100, discountPct: 12 } },
+    ],
+  },
+  {
+    id: 'org-marmara',
+    name: 'Marmara Sewing Atelier',
+    slug: 'marmara-sewing-atelier',
+    description: 'Boutique sewing workshop for made-to-measure and premium finishes.',
+    roles: ['SEWING_WORKSHOP'],
+    city: 'Istanbul',
+    country: 'Türkiye',
+    lat: 41.0082,
+    lng: 28.9784,
+    verified: true,
+    ratingAvg: 4.9,
+    ratingCount: 54,
+    services: [
+      { type: 'SEWING', title: 'Made-to-measure sewing', pricingModel: 'PER_PANEL', basePrice: 19, minCharge: 60, leadTimeDays: 3 },
+      { type: 'EMBROIDERY', title: 'Custom embroidery', pricingModel: 'PER_HOUR', basePrice: 25, leadTimeDays: 4 },
+    ],
+    capacity: { capacityUnits: 220, bookedUnits: 140, unit: 'panels' },
+    fabricRollWidthsCm: [280, 300],
+  },
+  {
+    id: 'org-anadolu',
+    name: 'Anadolu Confection Co.',
+    slug: 'anadolu-confection',
+    description: 'High-volume budget confection with weekly overflow capacity.',
+    roles: ['SEWING_WORKSHOP', 'MANUFACTURER'],
+    city: 'Gaziantep',
+    country: 'Türkiye',
+    lat: 37.0662,
+    lng: 37.3833,
+    verified: false,
+    ratingAvg: 4.1,
+    ratingCount: 33,
+    services: [
+      { type: 'SEWING', title: 'Volume curtain sewing', pricingModel: 'PER_PANEL', basePrice: 9, leadTimeDays: 9 },
+    ],
+    capacity: { capacityUnits: 1500, bookedUnits: 400, unit: 'panels' },
+    fabricRollWidthsCm: [280],
+    pricingRules: [
+      { type: 'VOLUME_DISCOUNT', name: '200+ panels', params: { minQty: 200, discountPct: 15 } },
+    ],
+  },
+  {
+    id: 'org-ege-install',
+    name: 'Ege Installation Team',
+    slug: 'ege-installation-team',
+    description: 'Certified curtain and blind installation across the Aegean region.',
+    roles: ['INSTALLER'],
+    city: 'Izmir',
+    country: 'Türkiye',
+    lat: 38.4237,
+    lng: 27.1428,
+    verified: true,
+    ratingAvg: 4.6,
+    ratingCount: 71,
+    services: [
+      { type: 'INSTALLATION', title: 'Rail & curtain installation', pricingModel: 'PER_METER', basePrice: 6, minCharge: 40, leadTimeDays: 2, serviceRadiusKm: 150 },
+      { type: 'MEASUREMENT', title: 'On-site measurement', pricingModel: 'FIXED', basePrice: 30, leadTimeDays: 1, serviceRadiusKm: 150 },
+    ],
+  },
+  {
+    id: 'org-istanbul-install',
+    name: 'Bosphorus Mounting Services',
+    slug: 'bosphorus-mounting',
+    description: 'Same-week installation, motorized systems a specialty.',
+    roles: ['INSTALLER'],
+    city: 'Istanbul',
+    country: 'Türkiye',
+    lat: 41.0422,
+    lng: 29.0089,
+    verified: true,
+    ratingAvg: 4.4,
+    ratingCount: 95,
+    services: [
+      { type: 'INSTALLATION', title: 'Curtain & blind mounting', pricingModel: 'PER_METER', basePrice: 7.5, minCharge: 50, leadTimeDays: 2, serviceRadiusKm: 80 },
+      { type: 'MOTORIZATION', title: 'Motorized track setup', pricingModel: 'FIXED', basePrice: 120, leadTimeDays: 4, serviceRadiusKm: 80 },
+    ],
+  },
+  {
+    id: 'org-kumasci',
+    name: 'Kumaşçı Fabric House',
+    slug: 'kumasci-fabric-house',
+    description: 'Wholesale fabric supplier — 400+ SKUs of drapery, sheer and blackout fabric.',
+    roles: ['FABRIC_SUPPLIER'],
+    city: 'Istanbul',
+    country: 'Türkiye',
+    lat: 41.0136,
+    lng: 28.955,
+    verified: true,
+    ratingAvg: 4.3,
+    ratingCount: 210,
+    services: [],
+  },
+  {
+    id: 'org-studio-perde',
+    name: 'Studio Perde Design',
+    slug: 'studio-perde-design',
+    description: 'Interior textile design studio: mood boards, 3D previews, custom patterns.',
+    roles: ['CREATIVE_STUDIO'],
+    city: 'Ankara',
+    country: 'Türkiye',
+    lat: 39.9334,
+    lng: 32.8597,
+    verified: true,
+    ratingAvg: 4.8,
+    ratingCount: 42,
+    services: [
+      { type: 'DESIGN', title: 'Curtain design package', pricingModel: 'FIXED', basePrice: 250, leadTimeDays: 7 },
+    ],
+  },
+]
+
+export const DEMO_PRODUCTS: ProductSummary[] = [
+  { id: 'prod-1', orgId: 'org-atlas', orgName: 'Atlas Curtain Manufacturing', name: 'Classic Pinch Pleat Curtain', slug: 'classic-pinch-pleat', category: 'CURTAIN', basePrice: 89, currency: 'USD', leadTimeDays: 7, description: 'Double pinch pleat, lined, made to measure.' },
+  { id: 'prod-2', orgId: 'org-atlas', orgName: 'Atlas Curtain Manufacturing', name: 'Hotel Blackout Panel', slug: 'hotel-blackout-panel', category: 'BLACKOUT', basePrice: 119, currency: 'USD', leadTimeDays: 10, description: '3-pass blackout, flame retardant, contract grade.' },
+  { id: 'prod-3', orgId: 'org-denizli', orgName: 'Denizli Textile Works', name: 'Voile Sheer Panel', slug: 'voile-sheer-panel', category: 'SHEER', basePrice: 45, currency: 'USD', leadTimeDays: 5, description: 'Feather-light voile with lead-weighted hem.' },
+  { id: 'prod-4', orgId: 'org-denizli', orgName: 'Denizli Textile Works', name: 'Embroidered Tulle', slug: 'embroidered-tulle', category: 'TULLE', basePrice: 62, currency: 'USD', leadTimeDays: 8, description: 'Traditional embroidered tulle, 300cm drop.' },
+  { id: 'prod-5', orgId: 'org-anadolu', orgName: 'Anadolu Confection Co.', name: 'Day-Night Zebra Blind', slug: 'day-night-zebra', category: 'ZEBRA_BLIND', basePrice: 38, currency: 'USD', leadTimeDays: 6, description: 'Alternating sheer/solid bands, cassette included.' },
+  { id: 'prod-6', orgId: 'org-anadolu', orgName: 'Anadolu Confection Co.', name: 'Thermal Roller Blind', slug: 'thermal-roller', category: 'ROLLER_BLIND', basePrice: 42, currency: 'USD', leadTimeDays: 6, description: 'Thermal-coated roller, chain or spring mechanism.' },
+]
+
+export const DEMO_FABRICS: FabricSummary[] = [
+  { id: 'fab-1', orgId: 'org-kumasci', orgName: 'Kumaşçı Fabric House', name: 'Linen Blend Natural', sku: 'KFH-LIN-001', composition: '55% linen, 45% cotton', color: 'Natural', widthCm: 300, pricePerMeter: 12.5, currency: 'USD', stockMeters: 850 },
+  { id: 'fab-2', orgId: 'org-kumasci', orgName: 'Kumaşçı Fabric House', name: 'Velvet Royal Navy', sku: 'KFH-VEL-014', composition: '100% polyester velvet', color: 'Navy', widthCm: 280, pricePerMeter: 18, currency: 'USD', stockMeters: 420 },
+  { id: 'fab-3', orgId: 'org-kumasci', orgName: 'Kumaşçı Fabric House', name: 'Blackout Coated White', sku: 'KFH-BLK-007', composition: '3-pass acrylic coated polyester', color: 'White', widthCm: 280, pricePerMeter: 9.8, currency: 'USD', stockMeters: 1200 },
+  { id: 'fab-4', orgId: 'org-denizli', orgName: 'Denizli Textile Works', name: 'Voile Snow', sku: 'DTW-VOI-101', composition: '100% polyester voile', color: 'Snow white', widthCm: 300, pricePerMeter: 4.2, currency: 'USD', stockMeters: 3200 },
+]
+
+export const DEMO_ORDERS: OrderSummary[] = [
+  { id: 'ord-1', orderNumber: 'CO-2026-0142', buyerName: 'Perde Palace (Retail)', sellerName: 'Atlas Curtain Manufacturing', status: 'IN_PRODUCTION', total: 4280, currency: 'USD', placedAt: '2026-06-24', dueDate: '2026-07-08', itemCount: 48 },
+  { id: 'ord-2', orderNumber: 'CO-2026-0141', buyerName: 'HomeStyle Interiors', sellerName: 'Marmara Sewing Atelier', status: 'SHIPPED', total: 1140, currency: 'USD', placedAt: '2026-06-21', dueDate: '2026-07-01', itemCount: 12 },
+  { id: 'ord-3', orderNumber: 'CO-2026-0139', buyerName: 'Perde Palace (Retail)', sellerName: 'Ege Installation Team', status: 'COMPLETED', total: 380, currency: 'USD', placedAt: '2026-06-15', itemCount: 1 },
+  { id: 'ord-4', orderNumber: 'CO-2026-0137', buyerName: 'Grand Hotel Ankara', sellerName: 'Denizli Textile Works', status: 'CONFIRMED', total: 9650, currency: 'USD', placedAt: '2026-06-28', dueDate: '2026-07-20', itemCount: 120 },
+  { id: 'ord-5', orderNumber: 'CO-2026-0135', buyerName: 'HomeStyle Interiors', sellerName: 'Kumaşçı Fabric House', status: 'DELIVERED', total: 2130, currency: 'USD', placedAt: '2026-06-10', itemCount: 6 },
+]
+
+/** Well-known city coordinates for demo-mode logistics scoring. */
+export const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  istanbul: { lat: 41.0082, lng: 28.9784 },
+  ankara: { lat: 39.9334, lng: 32.8597 },
+  izmir: { lat: 38.4237, lng: 27.1428 },
+  bursa: { lat: 40.1885, lng: 29.061 },
+  denizli: { lat: 37.7765, lng: 29.0864 },
+  gaziantep: { lat: 37.0662, lng: 37.3833 },
+  antalya: { lat: 36.8969, lng: 30.7133 },
+  adana: { lat: 37.0, lng: 35.3213 },
+}
