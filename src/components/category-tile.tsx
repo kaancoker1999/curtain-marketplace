@@ -1,8 +1,19 @@
-// Kategori vitrin görselleri — her perde tipi için stilize oda sahnesi (SVG).
-// Gerçek ürün fotoğrafları hazır olduğunda public/categories/ altına konup
-// bu bileşen <Image> ile değiştirilebilir.
+// Kategori vitrin görselleri: gerçek fotoğrafı olan kategoriler
+// public/categories/ altındaki fotoğrafı kullanır (Unsplash lisansı — ticari
+// kullanım serbest); fotoğrafı olmayan niş kategoriler stilize oda sahnesi
+// (SVG) ile gösterilir.
 
+import { CATEGORY_LABELS } from '@/lib/labels'
 import type { ProductCategory } from '@/lib/types'
+
+const PHOTOS: Partial<Record<ProductCategory, string>> = {
+  ROLLER_BLIND: '/categories/roller.jpg',
+  CURTAIN: '/categories/curtain.jpg',
+  VENETIAN_BLIND: '/categories/venetian.jpg',
+  WOOD_BLIND: '/categories/wood.jpg',
+  SHEER: '/categories/sheer.jpg',
+  BLACKOUT: '/categories/blackout.jpg',
+}
 
 const SCENE: Record<string, { wall: string; main: string; accent: string }> = {
   ROLLER_BLIND: { wall: '#F3EFE7', main: '#C9BCA4', accent: '#A5977C' },
@@ -17,6 +28,19 @@ const SCENE: Record<string, { wall: string; main: string; accent: string }> = {
 }
 
 export function CategoryTile({ category }: { category: ProductCategory }) {
+  const photo = PHOTOS[category]
+  if (photo) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={photo}
+        alt={CATEGORY_LABELS[category]}
+        loading="lazy"
+        className="h-full w-full object-cover"
+      />
+    )
+  }
+
   const c = SCENE[category] ?? SCENE.CURTAIN
 
   return (
