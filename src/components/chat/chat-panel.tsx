@@ -1,11 +1,14 @@
 'use client'
 
+// Ana sayfa asistanı — ChatGPT benzeri deneyim:
+//  - Boş durumda: ortalanmış karşılama başlığı + büyük hap girişi + öneriler
+//  - Sohbet başlayınca: mesaj akışı (kullanıcı sağda balon, asistan solda
+//    avatarlı düz metin) ve altta sabit giriş kutusu
+
 import { useEffect, useRef, useState } from 'react'
-import { BadgeCheck, Loader2, SendHorizonal, Sparkles, Star } from 'lucide-react'
+import { ArrowUp, BadgeCheck, Sparkles, Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { formatTRY } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -38,15 +41,61 @@ const SUGGESTIONS = [
   "Ankara'da otel projesi için perde tasarımı yaptırmak istiyorum",
 ]
 
-const WELCOME: ChatMessage = {
-  role: 'assistant',
-  content:
-    'Merhaba! Ben CurtainOS asistanıyım. İhtiyacınızı yazın — ağımızdaki üretici, atölye ve montaj ' +
-    'ekipleri arasından fiyat, termin, kapasite, fire, lojistik ve puana göre en uygun eşleşmeyi bulayım.',
+function AssistantAvatar() {
+  return (
+    <div className="flex size-8 shrink-0 items-center justify-center rounded-full border bg-background">
+      <Sparkles className="size-4 text-primary" />
+    </div>
+  )
+}
+
+function ChatInput({
+  value,
+  onChange,
+  onSubmit,
+  disabled,
+  autoFocus,
+}: {
+  value: string
+  onChange: (v: string) => void
+  onSubmit: () => void
+  disabled: boolean
+  autoFocus?: boolean
+}) {
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        onSubmit()
+      }}
+      className="flex w-full items-center gap-2 rounded-full border bg-background py-2 pl-5 pr-2 shadow-sm transition-shadow focus-within:shadow-md"
+    >
+      <input
+        value={value}
+        autoFocus={autoFocus}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="İhtiyacınızı yazın…"
+        className="h-9 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-foreground"
+      />
+      <button
+        type="submit"
+        disabled={disabled || !value.trim()}
+        aria-label="Gönder"
+        className={cn(
+          'flex size-9 shrink-0 items-center justify-center rounded-full transition-colors',
+          value.trim() && !disabled
+            ? 'bg-primary text-primary-foreground hover:bg-primary/85'
+            : 'bg-muted text-muted-foreground',
+        )}
+      >
+        <ArrowUp className="size-4" />
+      </button>
+    </form>
+  )
 }
 
 export function ChatPanel() {
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -67,7 +116,7 @@ export function ChatPanel() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: next.slice(1).map(({ role, content }) => ({ role, content })),
+          messages: next.map(({ role, content }) => ({ role, content })),
         }),
       })
       if (!res.ok) throw new Error(`Sunucu hatası (${res.status})`)
@@ -86,108 +135,123 @@ export function ChatPanel() {
     }
   }
 
-  return (
-    <div className="flex h-full flex-col">
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-1 py-6">
-        {messages.map((m, i) => (
-          <div key={i} className={cn('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}>
-            <div
-              className={cn(
-                'max-w-[85%] space-y-3',
-                m.role === 'user'
-                  ? 'rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground'
-                  : 'rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm',
-              )}
-            >
-              <p className="whitespace-pre-wrap">
-                {m.content.split('**').map((part, j) =>
-                  j % 2 === 1 ? <strong key={j}>{part}</strong> : part,
-                )}
-              </p>
-              {m.matches && m.matches.length > 0 && (
-                <div className="space-y-2">
-                  {m.matches.map((match) => (
-                    <Card key={match.provider.id} className="bg-background py-3">
-                      <CardContent className="space-y-1.5 px-4">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="flex items-center gap-1.5 text-sm font-semibold">
-                            <span className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
-                              {match.rank}
-                            </span>
-                            {match.provider.name}
-                            {match.provider.verified && (
-                              <BadgeCheck className="size-3.5 text-primary" />
-                            )}
-                          </span>
-                          <Badge variant="secondary">
-                            Skor {Math.round(match.totalScore * 100)}/100
-                          </Badge>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                          <span>{match.provider.city}</span>
-                          <span>·</span>
-                          <span className="font-medium text-foreground">
-                            {formatTRY(match.estimatedPrice)}
-                          </span>
-                          <span>·</span>
-                          <span>{match.estimatedLeadTimeDays} gün teslim</span>
-                          <span>·</span>
-                          <span>{match.distanceKm} km</span>
-                          <span>·</span>
-                          <span className="flex items-center gap-0.5">
-                            <Star className="size-3 fill-amber-400 text-amber-400" />
-                            {match.provider.ratingAvg.toFixed(1)}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="flex items-center gap-2 rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" /> Eşleştiriliyor…
-            </div>
-          </div>
-        )}
-      </div>
-
-      {messages.length === 1 && (
-        <div className="flex flex-wrap justify-center gap-2 pb-4">
+  // ---------------------------------------------------------------------------
+  // Boş durum — ChatGPT benzeri ortalanmış karşılama
+  // ---------------------------------------------------------------------------
+  if (messages.length === 0) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-8 pb-24">
+        <div className="space-y-2 text-center">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Size nasıl yardımcı olabilirim?
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            İhtiyacınızı yazın — ağımızdaki üretici, atölye ve montaj ekipleri arasından en uygun
+            eşleşmeyi bulayım.
+          </p>
+        </div>
+        <div className="w-full max-w-2xl">
+          <ChatInput value={input} onChange={setInput} onSubmit={() => send(input)} disabled={loading} autoFocus />
+        </div>
+        <div className="flex max-w-2xl flex-wrap justify-center gap-2">
           {SUGGESTIONS.map((s) => (
             <button
               key={s}
               onClick={() => send(s)}
-              className="rounded-full border bg-background px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="rounded-full border bg-background px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               {s}
             </button>
           ))}
         </div>
-      )}
+      </div>
+    )
+  }
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          send(input)
-        }}
-        className="flex items-center gap-2 border-t pt-4"
-      >
-        <Sparkles className="size-4 shrink-0 text-primary" />
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="İhtiyacınızı yazın… (örn. İstanbul'a 60 adet 160x260 perde dikimi, 21 gün)"
-          className="flex-1"
-        />
-        <Button type="submit" size="icon" disabled={loading || !input.trim()}>
-          <SendHorizonal className="size-4" />
-        </Button>
-      </form>
+  // ---------------------------------------------------------------------------
+  // Sohbet görünümü
+  // ---------------------------------------------------------------------------
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto px-1 py-8">
+        {messages.map((m, i) =>
+          m.role === 'user' ? (
+            <div key={i} className="flex justify-end">
+              <div className="max-w-[75%] rounded-3xl bg-muted px-4 py-2.5 text-[15px]">
+                <p className="whitespace-pre-wrap">{m.content}</p>
+              </div>
+            </div>
+          ) : (
+            <div key={i} className="flex gap-3">
+              <AssistantAvatar />
+              <div className="min-w-0 flex-1 space-y-3 pt-1">
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
+                  {m.content.split('**').map((part, j) =>
+                    j % 2 === 1 ? <strong key={j}>{part}</strong> : part,
+                  )}
+                </p>
+                {m.matches && m.matches.length > 0 && (
+                  <div className="space-y-2">
+                    {m.matches.map((match) => (
+                      <Card key={match.provider.id} className="py-3">
+                        <CardContent className="space-y-1.5 px-4">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="flex items-center gap-1.5 text-sm font-semibold">
+                              <span className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                                {match.rank}
+                              </span>
+                              {match.provider.name}
+                              {match.provider.verified && (
+                                <BadgeCheck className="size-3.5 text-primary" />
+                              )}
+                            </span>
+                            <Badge variant="secondary">
+                              Skor {Math.round(match.totalScore * 100)}/100
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            <span>{match.provider.city}</span>
+                            <span>·</span>
+                            <span className="font-medium text-foreground">
+                              {formatTRY(match.estimatedPrice)}
+                            </span>
+                            <span>·</span>
+                            <span>{match.estimatedLeadTimeDays} gün teslim</span>
+                            <span>·</span>
+                            <span>{match.distanceKm} km</span>
+                            <span>·</span>
+                            <span className="flex items-center gap-0.5">
+                              <Star className="size-3 fill-amber-400 text-amber-400" />
+                              {match.provider.ratingAvg.toFixed(1)}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ),
+        )}
+        {loading && (
+          <div className="flex items-center gap-3">
+            <AssistantAvatar />
+            <div className="flex items-center gap-1 pt-1">
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:0ms]" />
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:150ms]" />
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:300ms]" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="pb-4 pt-2">
+        <ChatInput value={input} onChange={setInput} onSubmit={() => send(input)} disabled={loading} />
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          Asistan eşleştirmeleri fiyat, termin, kapasite, fire, lojistik ve puana göre yapar.
+        </p>
+      </div>
     </div>
   )
 }
