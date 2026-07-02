@@ -55,13 +55,17 @@ export default async function UreticilerPage({
     .sort((a, b) => b.ratingAvg - a.ratingAvg || (b.salesCount ?? 0) - (a.salesCount ?? 0))
     .slice(0, 4)
 
-  // Üreticinin sunduğu ürün kategorileri + hizmetler (kart altı etiketleri)
-  function offeringsOf(providerId: string, serviceTypes: { type: string }[]): string[] {
-    const productLabels = products
-      .filter((p) => p.orgId === providerId)
-      .map((p) => CATEGORY_LABELS[p.category])
-    const serviceLabels = serviceTypes.map((s) => SERVICE_LABELS[s.type as keyof typeof SERVICE_LABELS])
-    return [...new Set([...productLabels, ...serviceLabels])]
+  // Üreticinin sunduğu ürün kategorileri ve hizmetleri (kart altı etiketleri)
+  function offeringsOf(providerId: string, serviceTypes: { type: string }[]) {
+    const urunler = [
+      ...new Set(
+        products.filter((p) => p.orgId === providerId).map((p) => CATEGORY_LABELS[p.category]),
+      ),
+    ]
+    const hizmetler = [
+      ...new Set(serviceTypes.map((s) => SERVICE_LABELS[s.type as keyof typeof SERVICE_LABELS])),
+    ]
+    return { urunler, hizmetler }
   }
 
   return (
@@ -161,22 +165,34 @@ export default async function UreticilerPage({
                       </div>
                     )}
                     {(() => {
-                      const offerings = offeringsOf(p.id, p.services)
-                      if (offerings.length === 0) return null
-                      const shown = offerings.slice(0, 3)
-                      const kalan = offerings.length - shown.length
+                      const { urunler, hizmetler } = offeringsOf(p.id, p.services)
+                      const row = (baslik: string, labels: string[]) => {
+                        if (labels.length === 0) return null
+                        const shown = labels.slice(0, 2)
+                        const kalan = labels.length - shown.length
+                        return (
+                          <div className="flex flex-wrap items-center gap-1">
+                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                              {baslik}
+                            </span>
+                            {shown.map((label) => (
+                              <Badge key={label} variant="secondary" className="text-[10px]">
+                                {label}
+                              </Badge>
+                            ))}
+                            {kalan > 0 && (
+                              <Badge variant="outline" className="text-[10px]">
+                                +{kalan}
+                              </Badge>
+                            )}
+                          </div>
+                        )
+                      }
+                      if (urunler.length === 0 && hizmetler.length === 0) return null
                       return (
-                        <div className="flex flex-wrap gap-1 pt-1">
-                          {shown.map((label) => (
-                            <Badge key={label} variant="secondary" className="text-[10px]">
-                              {label}
-                            </Badge>
-                          ))}
-                          {kalan > 0 && (
-                            <Badge variant="outline" className="text-[10px]">
-                              +{kalan}
-                            </Badge>
-                          )}
+                        <div className="space-y-1 pt-1">
+                          {row('Ürünler', urunler)}
+                          {row('Hizmetler', hizmetler)}
                         </div>
                       )
                     })()}
