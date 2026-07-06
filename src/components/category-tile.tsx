@@ -45,21 +45,33 @@ const SCENE: Record<string, { wall: string; main: string; accent: string }> = {
 export function CategoryTile({ category }: { category: ProductCategory }) {
   const photo = photoFor(category)
   if (photo) {
+    // Fotoğraf hangi oranda gelirse gelsin kırpılmadan tam görünür;
+    // kutuda boş kalan kenarları aynı fotoğrafın bulanık hali doldurur.
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={photo}
-        alt={CATEGORY_LABELS[category]}
-        loading="lazy"
-        className="h-full w-full object-cover"
-      />
+      <div className="relative h-full w-full overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photo}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          className="absolute inset-0 h-full w-full scale-110 object-cover blur-lg"
+        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photo}
+          alt={CATEGORY_LABELS[category]}
+          loading="lazy"
+          className="relative h-full w-full object-contain"
+        />
+      </div>
     )
   }
 
   const c = SCENE[category] ?? SCENE.CURTAIN
 
   return (
-    <svg viewBox="0 0 300 200" className="h-full w-full object-cover">
+    <svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" className="h-full w-full object-cover">
       {/* duvar & zemin */}
       <rect width="300" height="200" fill={c.wall} />
       <rect y="164" width="300" height="36" fill="#E4DFD3" />

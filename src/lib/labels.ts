@@ -40,7 +40,7 @@ export const CATEGORY_LABELS: Record<ProductCategory, string> = {
   ZEBRA_BLIND: 'Zebra',
   VENETIAN_BLIND: 'Jaluzi',
   WOOD_BLIND: 'Ahşap Perde',
-  ROMAN_SHADE: 'Roman Perde',
+  ROMAN_SHADE: 'Katlamalı Perde',
   CELLULAR_SHADE: 'Hücreli Perde',
   TULLE: 'Tül Perde',
   ACCESSORY: 'Aksesuar',

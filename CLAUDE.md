@@ -33,11 +33,18 @@ Sahibi: Kaan (Türkçe konuşur — yanıtlar Türkçe olsun).
 - `src/lib/demo-data.ts` — tüm demo verisi (üreticiler, ürünler, kumaşlar, siparişler).
   Seed (`prisma/seed.ts`) da buradan beslenir.
 - `src/lib/matching/index.ts` — eşleştirme motoru (fiyat/termin/kapasite/fire/lojistik/puan).
-- `src/app/api/chat/route.ts` — ana sayfa asistanı: Türkçe niyet çözümleme + slot doldurma;
-  yalnız eşleştirme taleplerini anlar (bilinen kısıt: platform sorularına cevap veremiyor).
+- `src/app/api/chat/route.ts` — ana sayfa asistanı: Türkçe niyet çözümleme + slot doldurma
+  (eşleştirme) + platform soruları. AI anahtarı varsa `src/lib/platform-qa.ts`'teki
+  buildPlatformContext ile beslenen LLM her soruyu yanıtlar; anahtar yoksa aynı dosyadaki
+  answerPlatformQuestion deterministik yanıt verir (puan/fiyat/üretici/sayı soruları).
 - `src/components/product/cellular-shade-configurator.tsx` ve
   `roman-shade-configurator.tsx` — instablinds.com'dan birebir uyarlanmış kural motorlu
   konfigüratörler (ışık kontrolü → hücre tipi kısıtı / kumaş koleksiyonu / ayrı fiyat tablosu).
+- `src/lib/pricing/cellular-grids.ts` — hücreli perdenin GERÇEK fiyat gridleri (Kaan'ın
+  Eylül 2025 Excel listesi, USD; kaynak dosya adı içinde). 9 grid (ışık kontrolü × hücre ×
+  renk grubu), inç kırılımlı, bir üst kırılıma yuvarlanır. Kur `USD_TRY = 46.8` tek yerden
+  değişir. Mekanizma ek ücretleri lift+TDBU kombinasyon tutarı; 42" üzeri kargo farkı var.
+  (Excel'deki Arch/Pleated sayfaları platformda ürün olmadığı için aktarılmadı.)
 - `src/components/category-tile.tsx` — kategori görselleri: `public/categories/<ad>.jpg`
   varsa fotoğraf, yoksa SVG çizim (dosya adları dosyada listeli).
 - `public/catalogs/` — üretici PDF katalogları (Carra Woods → LUMIA Cellular 2025).
@@ -70,5 +77,4 @@ Sahibi: Kaan (Türkçe konuşur — yanıtlar Türkçe olsun).
 - Roman Shades PDF katalogu diskte bulunamadı (Kaan konumunu verecek);
   Drapery 2026 katalogu mevcut: `~/Desktop/Desktop - Kaan's MacBook Pro (2)/CARRA/LUMIA/VISUAL BOOKS FOR LUMIA/`
 - Konfigüratör "Sipariş talebi oluştur" henüz gerçek sipariş kaydı oluşturmuyor.
-- Asistan platform sorularına (örn. "en yüksek puanlı üretici?") cevap veremiyor.
 - Clerk/Stripe/Supabase/Maps bağlanmadı (env placeholder'lar hazır, README'de adımlar var).

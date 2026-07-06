@@ -8,10 +8,11 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getAiProvider } from '@/lib/ai'
-import { getProviders } from '@/lib/data'
+import { getProducts, getProviders } from '@/lib/data'
 import { formatTRY } from '@/lib/format'
 import { CITY_COORDS } from '@/lib/demo-data'
 import { matchProviders, type MatchRequest } from '@/lib/matching'
+import { answerPlatformQuestion, buildPlatformContext } from '@/lib/platform-qa'
 import type { ServiceType } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -198,7 +199,10 @@ export async function POST(request: Request) {
     }
   }
 
-  // Free-form conversation → LLM when configured.
+  // Serbest sohbet / platform soruları — veri her iki katmanda da kullanılır.
+  const [allProviders, allProducts] = await Promise.all([getProviders(), getProducts()])
+
+  // AI yapılandırılmışsa: platform verisiyle beslenmiş LLM her soruyu yanıtlar.
   const ai = getAiProvider()
   if (ai) {
     try {
@@ -206,15 +210,24 @@ export async function POST(request: Request) {
         system:
           'Sen CurtainOS asistanısın: perde sektörü için B2B bir platformun ana sayfa sohbet asistanı. ' +
           'Perakendecilere üretici, dikim atölyesi, kumaş tedarikçisi ve montaj ekibi bulmakta yardım edersin. ' +
-          'Türkçe, kısa ve net yanıt ver. Somut bir talep (hizmet + şehir + adet) alırsan kullanıcıyı bu bilgileri ' +
-          'tek mesajda yazmaya yönlendir; eşleştirmeyi platform motoru yapar.',
+          'Türkçe, kısa ve net yanıt ver. Platform hakkındaki soruları (üreticiler, puanlar, fiyatlar, ürünler) ' +
+          'yalnızca aşağıdaki veriye dayanarak yanıtla; veri dışında uydurma. Somut bir eşleştirme talebi ' +
+          '(hizmet + şehir + adet) alırsan kullanıcıyı bu bilgileri tek mesajda yazmaya yönlendir; ' +
+          'eşleştirmeyi platform motoru yapar.\n\n' +
+          buildPlatformContext(allProviders, allProducts),
         prompt: messages.map((m) => `${m.role === 'user' ? 'Kullanıcı' : 'Asistan'}: ${m.content}`).join('\n'),
         maxTokens: 512,
       })
       return NextResponse.json({ data: { reply, matches: [] } })
     } catch {
-      // fall through to the canned reply
+      // fall through to the deterministic layers below
     }
+  }
+
+  // AI yoksa (veya hata verdiyse): sık sorulan platform sorularına deterministik yanıt.
+  const qa = answerPlatformQuestion(lastUser.content, allProviders, allProducts)
+  if (qa) {
+    return NextResponse.json({ data: { reply: qa, matches: [] } })
   }
 
   const isGreeting = /merhaba|selam|hello|hi|nasılsın/i.test(lastUser.content)

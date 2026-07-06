@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, BadgeCheck, BookOpen, Factory, FileText, Handshake, MapPin, Ruler, Star, TrendingUp } from 'lucide-react'
+import { CategoryTile } from '@/components/category-tile'
 import { SiteHeader } from '@/components/site-header'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -124,7 +125,16 @@ export default async function UreticiDetayPage({
               {products.map((p) => {
                 const href = PRODUCT_PAGES[p.slug]
                 const card = (
-                  <Card className={href ? 'h-full transition-colors hover:border-primary' : 'h-full'}>
+                  <Card
+                    className={
+                      href
+                        ? 'h-full pt-0 transition-all hover:shadow-md hover:ring-primary'
+                        : 'h-full pt-0'
+                    }
+                  >
+                    <div className="aspect-square">
+                      <CategoryTile category={p.category} />
+                    </div>
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">
                         <CardTitle className="text-base">{p.name}</CardTitle>

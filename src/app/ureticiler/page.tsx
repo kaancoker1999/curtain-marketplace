@@ -101,7 +101,7 @@ export default async function UreticilerPage({
                     count > 0 ? 'hover:border-primary hover:shadow-md' : 'opacity-55 grayscale',
                   )}
                 >
-                  <div className="aspect-[3/2]">
+                  <div className="aspect-square">
                     <CategoryTile category={category} />
                   </div>
                   <div className="flex items-center justify-between border-t bg-background px-3 py-2.5">
@@ -121,7 +121,7 @@ export default async function UreticilerPage({
               return count > 0 ? (
                 <Link
                   key={category}
-                  href={active ? '/ureticiler' : `/ureticiler?kategori=${category}`}
+                  href={active ? '/ureticiler' : `/ureticiler?kategori=${category}#uretici-listesi`}
                   className="block"
                 >
                   {tile}
@@ -135,7 +135,8 @@ export default async function UreticilerPage({
           </div>
         </section>
 
-        {/* 2 — En iyi performans gösterenler */}
+        {/* 2 — En iyi performans gösterenler (yalnız kategori seçili değilken) */}
+        {!selected && (
         <section className="space-y-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
             <Trophy className="size-5 text-amber-500" /> En İyi Performans Gösterenler
@@ -202,9 +203,10 @@ export default async function UreticilerPage({
             ))}
           </div>
         </section>
+        )}
 
-        {/* 3 — Üretici listesi (kategoriye göre) */}
-        <section className="space-y-3">
+        {/* 3 — Üretici listesi (kategoriye göre); kategori tıklanınca buraya kaydırılır */}
+        <section id="uretici-listesi" className="scroll-mt-20 space-y-3">
           <h2 className="text-lg font-semibold tracking-tight">
             {selected ? `${CATEGORY_LABELS[selected]} Üreticileri (${visibleProviders.length})` : `Tüm Üreticiler (${visibleProviders.length})`}
           </h2>

@@ -2,8 +2,8 @@
 
 // Ölçüye özel hücreli perde konfigüratörü (Carra Woods ürünü).
 // Kural motoru: hücre tipi seçenekleri ışık kontrolüne bağlıdır, renk paleti
-// ve fiyat tablosu (taban + m² oranı) her ışık kontrolü × hücre tipi
-// kombinasyonu için ayrı tanımlıdır.
+// ve fiyat gridi (src/lib/pricing/cellular-grids.ts — gerçek Eylül 2025
+// listesi) her ışık kontrolü × hücre tipi × renk grubu için ayrı tanımlıdır.
 //   - Tül Geçirgen  → yalnız Tek Hücre, 4 tül rengi
 //   - Işık Süzen    → Tek / Çift / Üç Hücre, kombinasyona göre palet
 //   - Karartma      → Tek / Çift Hücre, karartma paletleri
@@ -15,6 +15,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatTRY } from '@/lib/format'
+import {
+  CELLULAR_GRIDS,
+  CM_PER_INCH,
+  MECH_SURCHARGES_USD,
+  OVERSIZE_MIN_WIDTH_IN,
+  OVERSIZE_SHIPPING_USD,
+  USD_TRY,
+  gridPriceUSD,
+  type CellularGridId,
+} from '@/lib/pricing/cellular-grids'
 import { cn } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
@@ -136,12 +146,13 @@ const SHEER_COLORS: ColorOption[] = [
   { id: 'pebble-sheer', label: 'Çakıl', hex: '#C9C7C0' },
 ]
 
+// Desen farkı ayrı bir ücret değil; tasarım desenlerinin kendi fiyat gridi var (prints_34)
 const DESIGNER_PRINTS: ColorOption[] = [
-  { id: 'sand-print', label: 'Kum', hex: '#D6C8B0', price: 350 },
-  { id: 'mist-print', label: 'Sis', hex: '#BCBCC2', price: 350 },
-  { id: 'sky-print', label: 'Gök', hex: '#9FB8CE', price: 350 },
-  { id: 'cinder-print', label: 'Kül', hex: '#A89E94', price: 350 },
-  { id: 'storm-print', label: 'Fırtına', hex: '#8A8F98', price: 350 },
+  { id: 'sand-print', label: 'Kum', hex: '#D6C8B0' },
+  { id: 'mist-print', label: 'Sis', hex: '#BCBCC2' },
+  { id: 'sky-print', label: 'Gök', hex: '#9FB8CE' },
+  { id: 'cinder-print', label: 'Kül', hex: '#A89E94' },
+  { id: 'storm-print', label: 'Fırtına', hex: '#8A8F98' },
 ]
 
 /** Her ışık kontrolü × hücre tipi kombinasyonunun renk grupları. */
@@ -174,34 +185,35 @@ function getColorGroups(light: LightControlId, cell: CellTypeId): ColorGroup[] {
 }
 
 // ---------------------------------------------------------------------------
-// Fiyatlandırma — her kombinasyonun kendi fiyat tablosu var
+// Fiyatlandırma — Carra Woods gerçek fiyat gridleri (Eylül 2025 listesi).
+// Girilen cm ölçüsü inçe çevrilir, bir üst grid kırılımına yuvarlanır;
+// fiyat USD gridden okunup sabit kurla TL'ye çevrilir.
 // ---------------------------------------------------------------------------
 
-interface PriceTable {
-  base: number // taban fiyat (₺) — BASE_AREA_M2'ye kadar olan ölçüyü kapsar
-  areaRatePerM2: number // taban alanı aşan her m² için ₺
-}
+const toTRY = (usd: number) => Math.round(usd * USD_TRY)
 
-const BASE_AREA_M2 = 0.56 // ~60×93 cm
-
-const PRICE_TABLES: Record<string, PriceTable> = {
-  'sheer-single': { base: 6500, areaRatePerM2: 4900 },
-  'light-filtering-single': { base: 3600, areaRatePerM2: 2700 },
-  'light-filtering-double': { base: 4250, areaRatePerM2: 3200 },
-  'light-filtering-triple': { base: 5050, areaRatePerM2: 3800 },
-  'blackout-single': { base: 4800, areaRatePerM2: 3600 },
-  'blackout-double': { base: 5300, areaRatePerM2: 4000 },
+// Işık kontrolü + hücre tipi + renk grubu → hangi fiyat gridi kullanılacak
+function gridIdFor(light: LightControlId, cell: CellTypeId, colorGroupId: string | null): CellularGridId {
+  if (light === 'sheer') return 'sheer_34'
+  if (light === 'blackout') {
+    if (cell === 'double') return 'bo_double'
+    return colorGroupId === 'bo-34' ? 'bo_single_34' : 'bo_single'
+  }
+  if (cell === 'double') return 'lf_double'
+  if (cell === 'triple') return 'lf_triple'
+  if (colorGroupId === 'lf-prints') return 'prints_34'
+  return colorGroupId === 'lf-34' ? 'lf_single_34' : 'lf_single'
 }
 
 const LIFT_SYSTEMS = [
   { id: 'cordless', label: 'İpsiz (Cordless)', desc: 'Elle itip çekerek kullanılır; çocuk güvenliği için en iyi seçenek.', price: 0 },
-  { id: 'cord-loop', label: 'Sonsuz Zincir', desc: 'Zincirle kontrol; büyük ve yüksek pencereler için pratik.', price: 900 },
-  { id: 'motorized', label: 'Motorlu', desc: 'Uzaktan kumanda ve akıllı ev entegrasyonu.', price: 7500 },
+  { id: 'cord-loop', label: 'Sonsuz Zincir', desc: 'Zincirle kontrol; büyük ve yüksek pencereler için pratik.', price: toTRY(MECH_SURCHARGES_USD['cord-loop-none']) },
+  { id: 'motorized', label: 'Motorlu', desc: 'Uzaktan kumanda ve akıllı ev entegrasyonu.', price: toTRY(MECH_SURCHARGES_USD['motorized-none']) },
 ] as const
 
 const TDBU_OPTIONS = [
   { id: 'none', label: 'Standart', desc: 'Perde yalnızca alttan yukarı toplanır.', price: 0 },
-  { id: 'tdbu', label: 'Üstten Aç / Alttan Kapa (TDBU)', desc: 'Üstten de açılır; mahremiyeti korurken tepeden ışık alırsınız.', price: 2050 },
+  { id: 'tdbu', label: 'Üstten Aç / Alttan Kapa (TDBU)', desc: 'Üstten de açılır; mahremiyeti korurken tepeden ışık alırsınız.', price: toTRY(MECH_SURCHARGES_USD['cordless-tdbu']) },
 ] as const
 
 interface ConfigState {
@@ -217,19 +229,37 @@ interface ConfigState {
 }
 
 function computePrice(state: ConfigState) {
-  const table = PRICE_TABLES[`${state.lightControl}-${state.cellType}`] ?? PRICE_TABLES['light-filtering-single']
-  const areaM2 = (state.widthCm / 100) * (state.heightCm / 100)
-  const sizeAdj = Math.max(0, (areaM2 - BASE_AREA_M2) * table.areaRatePerM2)
+  // Seçili rengin ait olduğu renk grubunu bul (grubu grid seçimi belirliyor)
+  const groups = getColorGroups(state.lightControl, state.cellType)
+  const groupId = state.color
+    ? (groups.find((g) => g.colors.some((c) => c.id === state.color!.id))?.id ?? null)
+    : null
+
+  const grid = CELLULAR_GRIDS[gridIdFor(state.lightControl, state.cellType, groupId)]
+  const widthIn = state.widthCm / CM_PER_INCH
+  const heightIn = state.heightCm / CM_PER_INCH
+  const fabric = toTRY(gridPriceUSD(grid, widthIn, heightIn))
+
+  // Grid kırılımı (özette göstermek için): bir üst kırılım
+  const breakW = grid.widths.find((w) => widthIn <= w) ?? grid.widths[grid.widths.length - 1]
+  const breakH = grid.heights.find((h) => heightIn <= h) ?? grid.heights[grid.heights.length - 1]
+
   const color = state.color?.price ?? 0
-  const lift = LIFT_SYSTEMS.find((l) => l.id === state.lift)?.price ?? 0
-  const tdbu = TDBU_OPTIONS.find((t) => t.id === state.tdbu)?.price ?? 0
+  // Mekanizma + açılım tek kombinasyon tutarıyla fiyatlanır (örn. Motor+TDBU)
+  const mechTotal = toTRY(MECH_SURCHARGES_USD[`${state.lift}-${state.tdbu}`] ?? 0)
+  const lift = toTRY(MECH_SURCHARGES_USD[`${state.lift}-none`] ?? 0)
+  const tdbu = Math.max(0, mechTotal - lift)
+  const shipping = widthIn > OVERSIZE_MIN_WIDTH_IN ? toTRY(OVERSIZE_SHIPPING_USD) : 0
+
   return {
-    base: table.base,
-    sizeAdj: Math.round(sizeAdj),
+    base: fabric,
+    breakW,
+    breakH,
     color,
     lift,
     tdbu,
-    total: Math.round(table.base + sizeAdj + color + lift + tdbu),
+    shipping,
+    total: fabric + color + lift + tdbu + shipping,
   }
 }
 
@@ -577,14 +607,9 @@ export function CellularShadeConfigurator() {
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <QuoteRow
-                label="Taban fiyat"
-                sub={`${lightLabel} · ${cellLabel} — kombinasyona özel fiyat tablosu`}
+                label="Perde (kumaş + ölçü)"
+                sub={`${lightLabel} · ${cellLabel} — ${state.widthCm} × ${state.heightCm} cm (fiyat kırılımı ${price.breakW}" × ${price.breakH}")`}
                 value={formatTRY(price.base)}
-              />
-              <QuoteRow
-                label="Ölçü farkı"
-                sub={`${state.widthCm} × ${state.heightCm} cm`}
-                value={price.sizeAdj ? `+${formatTRY(price.sizeAdj)}` : 'Dahil'}
               />
               <QuoteRow
                 label="Renk"
@@ -601,6 +626,13 @@ export function CellularShadeConfigurator() {
                 sub={TDBU_OPTIONS.find((t) => t.id === state.tdbu)!.label}
                 value={price.tdbu ? `+${formatTRY(price.tdbu)}` : 'Dahil'}
               />
+              {price.shipping > 0 && (
+                <QuoteRow
+                  label="Geniş panel kargo farkı"
+                  sub={`${OVERSIZE_MIN_WIDTH_IN}" (${Math.round(OVERSIZE_MIN_WIDTH_IN * CM_PER_INCH)} cm) üzeri genişlik`}
+                  value={`+${formatTRY(price.shipping)}`}
+                />
+              )}
               <div className="flex items-center justify-between border-t pt-3">
                 <span className="font-medium">Tahmini Toplam</span>
                 <span className="text-2xl font-semibold">{formatTRY(price.total)}</span>
